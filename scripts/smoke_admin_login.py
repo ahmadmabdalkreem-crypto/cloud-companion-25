@@ -29,8 +29,14 @@ async def attempt(page, username: str, password: str):
     """Submit the dashboard login form; return (logged_in, toast_text)."""
     await page.goto(f"{BASE_URL}/dashboard", wait_until="domcontentloaded")
     await page.wait_for_selector("#u", timeout=20000)
-    await page.fill("#u", username)
-    await page.fill("#p", password)
+    # Wait for hydration: before React attaches, typed values are discarded and
+    # the submit handler is not bound yet.
+    await page.wait_for_load_state("networkidle")
+    await page.wait_for_timeout(1500)
+    await page.click("#u")
+    await page.locator("#u").press_sequentially(username, delay=10)
+    await page.click("#p")
+    await page.locator("#p").press_sequentially(password, delay=10)
     await page.get_by_role("button", name="دخول").click()
     try:
         await page.wait_for_selector("#u", state="detached", timeout=8000)
