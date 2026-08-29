@@ -18,6 +18,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProcessingRouteImport } from './routes/processing'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SelectWatchRouteImport } from './routes/select-watch'
+import { Route as SuccessRouteImport } from './routes/success'
 import { Route as VerifyOtpRouteImport } from './routes/verify-otp'
 import { Route as WatchSettingsRouteImport } from './routes/watch-settings'
 
@@ -66,6 +67,11 @@ const SelectWatchRoute = SelectWatchRouteImport.update({
   path: '/select-watch',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuccessRoute = SuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyOtpRoute = VerifyOtpRouteImport.update({
   id: '/verify-otp',
   path: '/verify-otp',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/processing': typeof ProcessingRoute
   '/register': typeof RegisterRoute
   '/select-watch': typeof SelectWatchRoute
+  '/success': typeof SuccessRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/watch-settings': typeof WatchSettingsRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/processing': typeof ProcessingRoute
   '/register': typeof RegisterRoute
   '/select-watch': typeof SelectWatchRoute
+  '/success': typeof SuccessRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/watch-settings': typeof WatchSettingsRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/processing': typeof ProcessingRoute
   '/register': typeof RegisterRoute
   '/select-watch': typeof SelectWatchRoute
+  '/success': typeof SuccessRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/watch-settings': typeof WatchSettingsRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/processing'
     | '/register'
     | '/select-watch'
+    | '/success'
     | '/verify-otp'
     | '/watch-settings'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/processing'
     | '/register'
     | '/select-watch'
+    | '/success'
     | '/verify-otp'
     | '/watch-settings'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/processing'
     | '/register'
     | '/select-watch'
+    | '/success'
     | '/verify-otp'
     | '/watch-settings'
   fileRoutesById: FileRoutesById
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   ProcessingRoute: typeof ProcessingRoute
   RegisterRoute: typeof RegisterRoute
   SelectWatchRoute: typeof SelectWatchRoute
+  SuccessRoute: typeof SuccessRoute
   VerifyOtpRoute: typeof VerifyOtpRoute
   WatchSettingsRoute: typeof WatchSettingsRoute
 }
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SelectWatchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/success': {
+      id: '/success'
+      path: '/success'
+      fullPath: '/success'
+      preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify-otp': {
       id: '/verify-otp'
       path: '/verify-otp'
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProcessingRoute: ProcessingRoute,
   RegisterRoute: RegisterRoute,
   SelectWatchRoute: SelectWatchRoute,
+  SuccessRoute: SuccessRoute,
   VerifyOtpRoute: VerifyOtpRoute,
   WatchSettingsRoute: WatchSettingsRoute,
 }

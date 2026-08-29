@@ -6,6 +6,7 @@ const STEPS = [
   { key: "register", label: "البيانات الشخصية" },
   { key: "login", label: "تسجيل الدخول" },
   { key: "processing", label: "مراجعة الطلب" },
+  { key: "success", label: "تم بنجاح" },
 ] as const;
 
 export type OrderStepKey = (typeof STEPS)[number]["key"];

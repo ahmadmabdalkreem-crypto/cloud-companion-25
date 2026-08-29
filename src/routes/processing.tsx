@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   CheckCircle2,
   Clock,
@@ -46,6 +46,7 @@ const PROGRESS_CAP = 92;
 const ESTIMATED_SECONDS = Math.round((PROGRESS_CAP - 7) * (TICK_MS / 1000));
 
 function ProcessingPage() {
+  const navigate = useNavigate();
   const [progress, setProgress] = useState(7);
   const [elapsed, setElapsed] = useState(0);
   const [status, setStatus] = useState<"running" | "done" | "failed">("running");
@@ -71,6 +72,9 @@ function ProcessingPage() {
       if (cancelled) return;
       setProgress(100);
       setStatus("done");
+      window.setTimeout(() => {
+        void navigate({ to: "/success", replace: true });
+      }, 1200);
     };
     void getRemoteStage({ data: { sessionId: sid } })
       .then((r) => {
@@ -86,7 +90,7 @@ function ProcessingPage() {
       cancelled = true;
       unsub();
     };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -274,7 +278,7 @@ function ProcessingPage() {
 
           {done && (
             <Button asChild className="mt-6 h-12 w-full rounded-xl text-base">
-              <Link to="/select-watch">العودة إلى اختيار الساعة</Link>
+              <Link to="/success">عرض تأكيد الطلب</Link>
             </Button>
           )}
 
