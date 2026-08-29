@@ -121,6 +121,17 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 const CREDS_KEY = "elite:admin";
+const FILTERS_KEY = "elite:dashboard-filters";
+const PAGE_SIZE = 25;
+
+type SortKey = "recent" | "oldest" | "updated";
+
+const SORTS: { value: SortKey; label: string }[] = [
+  { value: "recent", label: "الأحدث إنشاءً" },
+  { value: "oldest", label: "الأقدم إنشاءً" },
+  { value: "updated", label: "آخر تحديث" },
+];
+
 
 function saveCreds(u: string, p: string) {
   sessionStorage.setItem(CREDS_KEY, JSON.stringify({ u, p }));
@@ -274,6 +285,9 @@ function Dashboard({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [onlineOnly, setOnlineOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<SortKey>("recent");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   const [selected, setSelected] = useState<OrderRow | null>(null);
   const [lastPing, setLastPing] = useState<number>(Date.now());
   const [now, setNow] = useState(() => Date.now());
@@ -295,6 +309,43 @@ function Dashboard({
       // Storage can be unavailable in privacy mode; defaults remain safe.
     }
   }, []);
+
+  // Restore saved filters/sort so a refresh keeps the admin's view.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(FILTERS_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw) as Partial<{
+        q: string;
+        statusFilter: string;
+        stageFilter: string;
+        onlineOnly: boolean;
+        sortBy: SortKey;
+      }>;
+      if (typeof s.q === "string") setQ(s.q);
+      if (typeof s.statusFilter === "string") setStatusFilter(s.statusFilter);
+      if (typeof s.stageFilter === "string") setStageFilter(s.stageFilter);
+      if (typeof s.onlineOnly === "boolean") setOnlineOnly(s.onlineOnly);
+      if (s.sortBy === "recent" || s.sortBy === "oldest" || s.sortBy === "updated") {
+        setSortBy(s.sortBy);
+      }
+    } catch {
+      // Ignore malformed or unavailable storage.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        FILTERS_KEY,
+        JSON.stringify({ q, statusFilter, stageFilter, onlineOnly, sortBy }),
+      );
+    } catch {
+      // Ignore storage restrictions.
+    }
+  }, [q, statusFilter, stageFilter, onlineOnly, sortBy]);
+
+
 
   useEffect(() => {
     ordersRef.current = orders;
@@ -360,7 +411,23 @@ function Dashboard({
     };
   }, [load]);
 
+  // Resync when the tab regains focus or the network comes back.
+  useEffect(() => {
+    const resync = () => {
+      if (document.visibilityState === "visible") void load({ silent: true });
+    };
+    document.addEventListener("visibilitychange", resync);
+    window.addEventListener("online", resync);
+    window.addEventListener("focus", resync);
+    return () => {
+      document.removeEventListener("visibilitychange", resync);
+      window.removeEventListener("online", resync);
+      window.removeEventListener("focus", resync);
+    };
+  }, [load]);
+
   // Presence roster
+
   useEffect(() => {
     const unsub = subscribeVisitors(setVisitors);
     return unsub;
@@ -440,7 +507,7 @@ function Dashboard({
   }, [visitors]);
 
   const filtered = useMemo(() => {
-    return orders.filter((o) => {
+    const list = orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (stageFilter !== "all" && o.stage !== stageFilter) return false;
       if (onlineOnly && !onlineSet.has(o.session_id)) return false;
@@ -455,7 +522,21 @@ function Dashboard({
       }
       return true;
     });
-  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet]);
+    const t = (v: string) => new Date(v).getTime();
+    const sorted = [...list];
+    if (sortBy === "oldest") sorted.sort((a, b) => t(a.created_at) - t(b.created_at));
+    else if (sortBy === "updated") sorted.sort((a, b) => t(b.updated_at) - t(a.updated_at));
+    else sorted.sort((a, b) => t(b.created_at) - t(a.created_at));
+    return sorted;
+  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet, sortBy]);
+
+  // Keep the rendered table light: render a page at a time.
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [q, statusFilter, stageFilter, onlineOnly, sortBy]);
+
 
   const stats = useMemo(() => {
     const total = orders.length;
@@ -742,7 +823,20 @@ function Dashboard({
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORTS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-input bg-background px-3 py-2 text-xs font-bold">
+
                 <input
                   type="checkbox"
                   className="accent-primary"
@@ -793,7 +887,7 @@ function Dashboard({
                         </td>
                       </tr>
                     )}
-                    {filtered.map((o) => {
+                    {visible.map((o) => {
                       const isOnline = onlineSet.has(o.session_id);
                       const isFresh = flashRef.current.has(o.id);
 
@@ -891,7 +985,19 @@ function Dashboard({
                   </tbody>
                 </table>
               </div>
+              {filtered.length > visible.length && (
+                <div className="border-t border-border p-3 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  >
+                    عرض المزيد ({filtered.length - visible.length})
+                  </Button>
+                </div>
+              )}
             </section>
+
           </div>
 
           {/* RIGHT: presence + live event feed */}
