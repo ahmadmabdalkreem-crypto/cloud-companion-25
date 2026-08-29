@@ -235,7 +235,11 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
             {error}
           </p>
         ) : null}
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loading || !u.trim() || !p.trim()}
+        >
           {loading ? "جارٍ الدخول..." : "دخول"}
         </Button>
       </form>
