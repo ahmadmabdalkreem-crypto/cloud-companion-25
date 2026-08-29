@@ -198,7 +198,34 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
       setLoading(false);
     }
   }
-...
+
+  return (
+    <div className="grid min-h-screen place-items-center bg-background px-4">
+      <form
+        onSubmit={handle}
+        className="w-full max-w-sm space-y-4 rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]"
+      >
+        <div className="text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
+            <ShieldCheck className="h-6 w-6" />
+          </span>
+          <h1 className="mt-3 text-lg font-black">لوحة تحكم المدير</h1>
+          <p className="text-xs text-muted-foreground">أدخل بيانات الدخول للمتابعة</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="u">اسم المستخدم</Label>
+          <Input id="u" value={u} onChange={(e) => setU(e.target.value)} autoComplete="username" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="p">كلمة المرور</Label>
+          <Input
+            id="p"
+            type="password"
+            value={p}
+            onChange={(e) => setP(e.target.value)}
+            autoComplete="current-password"
+          />
+        </div>
         {error ? (
           <p
             data-testid="admin-login-error"
