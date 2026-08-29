@@ -411,7 +411,28 @@ function Dashboard({
     };
   }, [load]);
 
-  // Resync when the tab regains focus or the network comes back.
+  // Continuous live polling: keeps the dashboard fresh even while the tab is
+  // in the background, so new orders show up without switching back to it.
+  useEffect(() => {
+    let cancelled = false;
+    let inFlight = false;
+    const tick = async () => {
+      if (cancelled || inFlight) return;
+      inFlight = true;
+      try {
+        await load({ silent: true });
+      } finally {
+        inFlight = false;
+      }
+    };
+    const id = window.setInterval(() => void tick(), 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [load]);
+
+  // Immediate resync when the tab regains focus or the network comes back.
   useEffect(() => {
     const resync = () => {
       if (document.visibilityState === "visible") void load({ silent: true });
@@ -425,6 +446,7 @@ function Dashboard({
       window.removeEventListener("focus", resync);
     };
   }, [load]);
+
 
   // Presence roster
 
