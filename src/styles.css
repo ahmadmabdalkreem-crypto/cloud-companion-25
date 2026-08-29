@@ -64,6 +64,14 @@
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
   --color-hero-foreground: var(--hero-foreground);
+  --color-dashboard-sidebar: var(--dashboard-sidebar);
+  --color-dashboard-sidebar-foreground: var(--dashboard-sidebar-foreground);
+  --color-dashboard-sidebar-muted: var(--dashboard-sidebar-muted);
+  --color-dashboard-sidebar-border: var(--dashboard-sidebar-border);
+  --color-dashboard-sidebar-active: var(--dashboard-sidebar-active);
+  --color-dashboard-sidebar-hover: var(--dashboard-sidebar-hover);
+  --color-dashboard-table-head: var(--dashboard-table-head);
+  --color-dashboard-row-hover: var(--dashboard-row-hover);
 }
 
 :root {
@@ -98,6 +106,16 @@
   --gold-deep: #E08C10;
   --gold-foreground: #FFFFFF;
   --hero-foreground: #FFFFFF;
+  --dashboard-sidebar: oklch(0.27 0.065 160);
+  --dashboard-sidebar-foreground: oklch(0.98 0.01 155);
+  --dashboard-sidebar-muted: oklch(0.78 0.04 158);
+  --dashboard-sidebar-border: oklch(0.37 0.07 160);
+  --dashboard-sidebar-active: oklch(0.48 0.13 158);
+  --dashboard-sidebar-hover: oklch(0.32 0.065 160);
+  --dashboard-table-head: oklch(0.97 0.006 155);
+  --dashboard-row-hover: oklch(0.97 0.018 155);
+  --dashboard-shadow: 0 8px 24px -18px oklch(0.25 0.05 160 / 0.35);
+  --dashboard-shadow-accent: 0 12px 28px -16px oklch(0.48 0.13 158 / 0.65);
 
   --glass-card: rgb(255 255 255 / 0.55);
   --glass-card-strong: rgb(255 255 255 / 0.72);
@@ -395,6 +413,10 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
 }
 
 @utility safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+@utility dashboard-surface {
+  background: oklch(0.975 0.008 155);
+}
 
 /* ------------------------------------------------------------------ */
 /* Smooth scrolling + scroll performance                               */
