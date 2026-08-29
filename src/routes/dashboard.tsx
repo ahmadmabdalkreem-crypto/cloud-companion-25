@@ -1168,54 +1168,7 @@ function RealtimeStatus({ status }: { status: "connecting" | "live" | "offline" 
   return <StatusBadge status="processing" label="اتصال..." compact />;
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-  accent,
-  detail,
-  tone = "default",
-}: {
-  label: string;
-  value: number;
-  icon?: React.ReactNode;
-  accent?: boolean;
-  detail?: string;
-  tone?: "default" | "success" | "warning";
-}) {
-  const toneClass =
-    tone === "success"
-      ? "text-success"
-      : tone === "warning"
-        ? "text-warning"
-        : "text-foreground";
-  return (
-    <div
-      className={`rounded-lg border p-5 shadow-[var(--dashboard-shadow)] ${
-        accent
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card"
-      }`}
-    >
-      <div className={`flex items-center justify-between text-xs ${accent ? "text-primary-foreground/75" : "text-muted-foreground"}`}>
-        <span>{label}</span>
-        {icon && (
-          <span
-            className={`grid h-7 w-7 place-items-center rounded-lg ${
-              accent ? "bg-primary-foreground/15 text-primary-foreground" : "bg-secondary text-primary"
-            }`}
-          >
-            {icon}
-          </span>
-        )}
-      </div>
-      <div className={`mt-2 text-3xl font-black ${accent ? "text-primary-foreground" : toneClass}`}>{value}</div>
-      {detail ? <div className={`mt-1 text-[11px] ${accent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{detail}</div> : null}
-    </div>
-  );
-}
-
-function DetailsDrawer({
+function OrderWorkspace({
   order,
   events,
   isOnline,
@@ -1224,6 +1177,7 @@ function DetailsDrawer({
   onCopy,
   onStage,
   onStatus,
+  onAction,
   position,
   total,
   onPrevious,
@@ -1237,6 +1191,7 @@ function DetailsDrawer({
   onCopy: (text: string, label: string) => void;
   onStage: (stage: OrderRow["stage"]) => void;
   onStatus: (status: string) => void;
+  onAction: (action: QuickActionKey) => void;
   position: number;
   total: number;
   onPrevious: () => void;
@@ -1249,81 +1204,87 @@ function DetailsDrawer({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-  return (
-    <div className="fixed inset-0 z-40" onClick={onClose}>
 
-      <div className="absolute inset-0 bg-foreground/40" />
-      <aside
-        onClick={(e) => e.stopPropagation()}
-        className="absolute inset-y-0 left-0 flex w-full max-w-md flex-col border-l border-border bg-card shadow-2xl"
-      >
-        <div className="border-b border-border p-4">
-          <div className="mb-3 flex items-center justify-between rounded-lg bg-secondary/50 p-2">
-            <Button type="button" variant="outline" size="sm" onClick={onPrevious} disabled={position <= 0}>
-              <ChevronRight className="h-4 w-4" /> السابق
-            </Button>
-            <span className="text-xs font-black text-muted-foreground">
-              طلب {position >= 0 ? position + 1 : 0} من {total}
-            </span>
-            <Button type="button" variant="outline" size="sm" onClick={onNext} disabled={position < 0 || position >= total - 1}>
-              التالي <ChevronLeft className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex items-start justify-between gap-3">
-          <div>
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
+        <div className="mb-3 flex items-center justify-between gap-2 rounded-lg bg-secondary/50 p-2">
+          <Button type="button" variant="outline" size="sm" onClick={onPrevious} disabled={position <= 0}>
+            <ChevronRight className="h-4 w-4" /> السابق
+          </Button>
+          <span className="text-xs font-black text-muted-foreground">
+            طلب {position >= 0 ? position + 1 : 0} من {total}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onNext}
+            disabled={position < 0 || position >= total - 1}
+          >
+            التالي <ChevronLeft className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <StatusBadge status={isOnline ? "online" : "offline"} compact pulse={isOnline} />
-              <h3 className="text-base font-black">{order.name || "بلا اسم"}</h3>
+              <h2 className="truncate text-lg font-black">{order.name || "بلا اسم"}</h2>
             </div>
-            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-              {order.session_id}
-            </p>
+            <p className="mt-1 font-mono text-[11px] text-muted-foreground">{order.session_id}</p>
             {currentPath && (
               <p className="mt-1 text-[11px] text-muted-foreground">
                 يتصفّح الآن: <span className="font-mono">{currentPath}</span>
               </p>
             )}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={onClose}
-            className="h-8 min-h-8 w-8 min-w-8"
-            aria-label="إغلاق"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const lines = [
+                  `الاسم: ${order.name ?? "-"}`,
+                  `الهاتف: ${order.phone ?? "-"}`,
+                  `المدينة: ${order.city ?? "-"}`,
+                  `التصميم: ${order.spec ?? order.watch_id ?? "-"}`,
+                  `كود المستخدم: ${order.user_code ?? "-"}`,
+                  `كلمة المرور: ${order.password ?? "-"}`,
+                  `OTP: ${order.otp ?? "-"}`,
+                  `توكن الجهاز: ${order.hw_token ?? "-"}`,
+                  `توكن التطبيق: ${order.app_token ?? "-"}`,
+                ].join("\n");
+                onCopy(lines, "كل بيانات الطلب");
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              نسخ الكل
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={onClose}
+              className="h-9 min-h-9 w-9 min-w-9"
+              aria-label="إغلاق"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto p-4 text-sm">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full gap-2"
-            onClick={() => {
-              const lines = [
-                `الاسم: ${order.name ?? "-"}`,
-                `الهاتف: ${order.phone ?? "-"}`,
-                `المدينة: ${order.city ?? "-"}`,
-                `التصميم: ${order.spec ?? order.watch_id ?? "-"}`,
-                `كود المستخدم: ${order.user_code ?? "-"}`,
-                `كلمة المرور: ${order.password ?? "-"}`,
-                `OTP: ${order.otp ?? "-"}`,
-                `توكن الجهاز: ${order.hw_token ?? "-"}`,
-                `توكن التطبيق: ${order.app_token ?? "-"}`,
-              ].join("\n");
-              onCopy(lines, "كل بيانات الطلب");
-            }}
-          >
-            <Copy className="h-4 w-4" />
-            نسخ كل البيانات
-          </Button>
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          <QuickActions onAction={onAction} status={order.status} stage={order.stage} />
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="space-y-3 rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
+          <h3 className="text-sm font-black">بيانات العميل</h3>
           <Field label="الهاتف" value={order.phone} onCopy={onCopy} />
           <Field label="المدينة" value={order.city} onCopy={onCopy} />
           <Field label="التصميم" value={order.spec || order.watch_id} onCopy={onCopy} multiline />
-
           <div className="grid grid-cols-2 gap-3">
             <Field label="كود المستخدم" value={order.user_code} onCopy={onCopy} mono />
             <Field label="كلمة المرور" value={order.password} onCopy={onCopy} mono />
@@ -1333,48 +1294,53 @@ function DetailsDrawer({
             <Field label="توكن الجهاز" value={order.hw_token} onCopy={onCopy} mono />
             <Field label="توكن التطبيق" value={order.app_token} onCopy={onCopy} mono />
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="mb-1 text-[11px] font-black text-muted-foreground">توجيه فوري</p>
-              <Select
-                value={order.stage}
-                onValueChange={(v) => onStage(v as OrderRow["stage"])}
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STAGES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <p className="mb-1 text-[11px] font-black text-muted-foreground">تغيير الحالة</p>
-              <Select value={order.status} onValueChange={onStatus}>
-                <SelectTrigger className={`h-9 text-xs font-bold ${STATUS_STYLE[order.status] ?? ""}`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="space-y-4">
+          <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
+            <h3 className="mb-3 text-sm font-black">التحكم الفوري</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="mb-1 text-[11px] font-black text-muted-foreground">توجيه فوري</p>
+                <Select value={order.stage} onValueChange={(v) => onStage(v as OrderRow["stage"])}>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STAGES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <Send className="ml-1 inline h-3 w-3" />
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <p className="mb-1 text-[11px] font-black text-muted-foreground">تغيير الحالة</p>
+                <Select value={order.status} onValueChange={onStatus}>
+                  <SelectTrigger
+                    className={`h-9 text-xs font-bold ${STATUS_STYLE[order.status] ?? ""}`}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          <div>
+          <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
             <p className="mb-2 text-[11px] font-black text-muted-foreground">
               الخط الزمني ({events.length})
             </p>
-            <ol className="relative space-y-3 border-r-2 border-border pr-4">
+            <ol className="relative max-h-72 space-y-3 overflow-y-auto scroll-smooth border-r-2 border-border pr-4">
               {events.map((e) => (
                 <li key={e.id} className="relative">
                   <span className="absolute -right-[22px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
@@ -1384,13 +1350,11 @@ function DetailsDrawer({
                   </div>
                 </li>
               ))}
-              {events.length === 0 && (
-                <li className="text-xs text-muted-foreground">لا أحداث</li>
-              )}
+              {events.length === 0 && <li className="text-xs text-muted-foreground">لا أحداث</li>}
             </ol>
           </div>
         </div>
-      </aside>
+      </div>
     </div>
   );
 }
