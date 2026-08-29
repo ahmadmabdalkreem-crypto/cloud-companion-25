@@ -148,26 +148,52 @@ function DashboardPage() {
   );
 }
 
+function extractServerMessage(err: unknown): string {
+  const raw =
+    err instanceof Error ? err.message : typeof err === "string" ? err : JSON.stringify(err);
+  if (!raw) return "تعذر تسجيل الدخول";
+  // Zod validation errors arrive as a JSON array of issues — surface them readably.
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const lines = parsed
+        .map((i: { path?: (string | number)[]; message?: string }) =>
+          [Array.isArray(i.path) ? i.path.join(".") : "", i.message].filter(Boolean).join(": "),
+        )
+        .filter(Boolean);
+      if (lines.length) return lines.join(" — ");
+    }
+  } catch {
+    /* not JSON: use the raw message */
+  }
+  return raw;
+}
+
 function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void }) {
   const [u, setU] = useState("");
   const [p, setP] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handle(e: FormEvent) {
     e.preventDefault();
     const user = u.trim();
     const pass = p.trim();
     if (!user || !pass) {
+      setError("يرجى إدخال اسم المستخدم وكلمة المرور");
       toast.error("يرجى إدخال اسم المستخدم وكلمة المرور");
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       await adminLogin({ data: { username: user, password: pass } });
       saveCreds(user, pass);
       onSuccess(user, pass);
     } catch (err) {
-      toast.error((err as Error).message);
+      const message = extractServerMessage(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -200,7 +226,20 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
             autoComplete="current-password"
           />
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
+        {error ? (
+          <p
+            data-testid="admin-login-error"
+            role="alert"
+            className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-700"
+          >
+            {error}
+          </p>
+        ) : null}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loading || !u.trim() || !p.trim()}
+        >
           {loading ? "جارٍ الدخول..." : "دخول"}
         </Button>
       </form>
