@@ -165,8 +165,7 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
     try {
       await adminLogin({ data: { username: user, password: pass } });
 
-      saveCreds(u, p);
-      onSuccess(u, p);
+      saveCreds(
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
