@@ -319,11 +319,13 @@ function Dashboard({
   const [alertsEnabled, setAlertsEnabled] = useState(false);
   const [notificationSound, setNotificationSound] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [needsActionOnly, setNeedsActionOnly] = useState(false);
   const flashRef = useRef<Set<string>>(new Set());
   const eventFeedRef = useRef<HTMLUListElement>(null);
   const hasLoadedRef = useRef(false);
   const ordersRef = useRef<OrderRow[]>([]);
   const alertsRef = useRef(false);
+  const prevStageRef = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     try {
