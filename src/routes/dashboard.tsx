@@ -411,7 +411,23 @@ function Dashboard({
     };
   }, [load]);
 
+  // Resync when the tab regains focus or the network comes back.
+  useEffect(() => {
+    const resync = () => {
+      if (document.visibilityState === "visible") void load({ silent: true });
+    };
+    document.addEventListener("visibilitychange", resync);
+    window.addEventListener("online", resync);
+    window.addEventListener("focus", resync);
+    return () => {
+      document.removeEventListener("visibilitychange", resync);
+      window.removeEventListener("online", resync);
+      window.removeEventListener("focus", resync);
+    };
+  }, [load]);
+
   // Presence roster
+
   useEffect(() => {
     const unsub = subscribeVisitors(setVisitors);
     return unsub;
