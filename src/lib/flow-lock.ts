@@ -14,6 +14,7 @@ const ORDER = [
   "/hardware-token",
   "/app-token",
   "/processing",
+  "/success",
 ] as const;
 
 type FlowPath = (typeof ORDER)[number];
