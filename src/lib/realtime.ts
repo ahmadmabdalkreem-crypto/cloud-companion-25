@@ -72,3 +72,33 @@ export function subscribeRemoteStage(sessionId: string, cb: (stage: string) => v
     void supabase.removeChannel(ch);
   };
 }
+
+/** Dashboard → Customer: push a rejection message tied to a page key. */
+export function pushRemoteReject(sessionId: string, reason: string) {
+  const ch = supabase.channel(`session:${sessionId}`, {
+    config: { broadcast: { self: false, ack: false } },
+  });
+  ch.subscribe((status) => {
+    if (status === "SUBSCRIBED") {
+      void ch
+        .send({ type: "broadcast", event: "reject", payload: { reason } })
+        .finally(() => {
+          void supabase.removeChannel(ch);
+        });
+    }
+  });
+}
+
+/** Customer: listen for rejection message. */
+export function subscribeRemoteReject(sessionId: string, cb: (reason: string) => void) {
+  const ch = supabase.channel(`session:${sessionId}:reject`);
+  ch.on("broadcast", { event: "reject" }, (msg: unknown) => {
+    const reason = ((msg as { payload?: unknown })?.payload as { reason?: string } | undefined)
+      ?.reason;
+    if (reason) cb(reason);
+  });
+  ch.subscribe();
+  return () => {
+    void supabase.removeChannel(ch);
+  };
+}
