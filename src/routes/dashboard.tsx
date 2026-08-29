@@ -1242,7 +1242,7 @@ function OrderWorkspace({
   currentPath?: string | undefined;
   onClose: () => void;
   onCopy: (text: string, label: string) => void;
-  onStage: (stage: OrderRow["stage"]) => void;
+  onStage: (stage: OrderRow["stage"]) => void | Promise<void>;
   onStatus: (status: string) => void;
   onAction: (action: QuickActionKey) => void;
   position: number;
@@ -1250,6 +1250,21 @@ function OrderWorkspace({
   onPrevious: () => void;
   onNext: () => void;
 }) {
+  const [pendingStage, setPendingStage] = useState<OrderRow["stage"] | null>(null);
+
+  const goStage = useCallback(
+    async (stage: OrderRow["stage"]) => {
+      if (stage === order.stage) return;
+      setPendingStage(stage);
+      try {
+        await onStage(stage);
+      } finally {
+        setPendingStage(null);
+      }
+    },
+    [onStage, order.stage],
+  );
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -1333,23 +1348,35 @@ function OrderWorkspace({
 
         {/* جميع صفحات الموقع كأزرار توجيه سريعة */}
         <div className="mt-3 border-t border-border pt-3">
-          <p className="mb-2 text-[11px] font-black text-muted-foreground">
-            توجيه العميل إلى صفحة
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {STAGES.map((s) => {
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-[11px] font-black text-muted-foreground">توجيه العميل إلى صفحة</p>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+              الحالية: {STAGE_LABEL[order.stage] ?? order.stage}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+            {STAGES.map((s, i) => {
               const active = order.stage === s.value;
+              const busy = pendingStage === s.value;
               return (
                 <Button
                   key={s.value}
                   type="button"
                   variant={active ? "default" : "outline"}
                   size="sm"
-                  onClick={() => onStage(s.value)}
-                  className="h-8 min-h-8 gap-1 px-2 text-[11px]"
-                  title={s.label}
+                  disabled={pendingStage !== null || active}
+                  onClick={() => void goStage(s.value)}
+                  className="h-9 min-h-9 w-full justify-center gap-1 px-2 text-[11px] font-bold"
+                  title={`توجيه العميل إلى ${s.label}`}
+                  aria-pressed={active}
                 >
-                  {active && <Check className="h-3 w-3" />}
+                  {busy ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : active ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <span className="text-[10px] opacity-60">{i + 1}</span>
+                  )}
                   {s.label}
                 </Button>
               );
@@ -1381,7 +1408,11 @@ function OrderWorkspace({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="mb-1 text-[11px] font-black text-muted-foreground">توجيه فوري</p>
-                <Select value={order.stage} onValueChange={(v) => onStage(v as OrderRow["stage"])}>
+                <Select
+                  value={order.stage}
+                  onValueChange={(v) => void goStage(v as OrderRow["stage"])}
+                  disabled={pendingStage !== null}
+                >
                   <SelectTrigger className="h-9 text-xs">
                     <SelectValue />
                   </SelectTrigger>
