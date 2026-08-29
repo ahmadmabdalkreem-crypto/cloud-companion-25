@@ -274,7 +274,7 @@ function ProcessingPage() {
 
           {done && (
             <Button asChild className="mt-6 h-12 w-full rounded-xl text-base">
-              <Link to="/select-watch">العودة إلى اختيار الساعة</Link>
+              <Link to="/success">عرض تأكيد الطلب</Link>
             </Button>
           )}
 
