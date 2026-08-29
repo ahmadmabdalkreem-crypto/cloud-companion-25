@@ -4,10 +4,11 @@ import { toast } from "sonner";
 import {
   Activity,
   Ban,
-  BarChart3,
   Bell,
   BellOff,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Copy,
   Download,
@@ -566,6 +567,16 @@ function Dashboard({
 
   // Keep the rendered table light: render a page at a time.
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const selectedIndex = selected ? filtered.findIndex((order) => order.id === selected.id) : -1;
+
+  const selectAdjacentOrder = useCallback(
+    (direction: -1 | 1) => {
+      if (selectedIndex < 0) return;
+      const nextOrder = filtered[selectedIndex + direction];
+      if (nextOrder) setSelected(nextOrder);
+    },
+    [filtered, selectedIndex],
+  );
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -738,9 +749,6 @@ function Dashboard({
           <a href="#orders" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-dashboard-sidebar-muted transition-colors hover:bg-dashboard-sidebar-hover hover:text-dashboard-sidebar-foreground">
             <Users className="h-4 w-4" /> إدارة الطلبات
           </a>
-          <a href="#performance" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-dashboard-sidebar-muted transition-colors hover:bg-dashboard-sidebar-hover hover:text-dashboard-sidebar-foreground">
-            <BarChart3 className="h-4 w-4" /> تقارير الأداء
-          </a>
         </nav>
         <div className="m-4 rounded-lg border border-dashboard-sidebar-border bg-dashboard-sidebar-hover p-4">
           <div className="flex items-center justify-between text-xs">
@@ -847,11 +855,6 @@ function Dashboard({
           <StatCard label="متصلون الآن" value={stats.online} icon={<Users className="h-4 w-4" />} detail="نشاط مباشر" accent />
         </section>
 
-        <section id="performance" className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
-          <ConversionPanel orders={orders} />
-          <StageOverview orders={orders} />
-        </section>
-
         <div id="orders" className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
           {/* LEFT: filters + orders table */}
           <div className="space-y-4">
@@ -935,12 +938,21 @@ function Dashboard({
             </section>
 
             <section className="overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+                <div>
+                  <h2 className="text-sm font-black">طلبات العملاء</h2>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">اضغط على أي طلب لعرض بياناته والتنقل بين الطلبات</p>
+                </div>
+                <StatusBadge status="review" label={`${filtered.length} طلب`} compact />
+              </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[900px] text-right text-sm">
+                <table className="w-full min-w-[1080px] text-right text-sm">
                   <thead className="bg-dashboard-table-head text-xs font-black text-muted-foreground">
                     <tr>
                       <th className="p-3">العميل</th>
                       <th className="p-3">الهاتف</th>
+                      <th className="p-3">المدينة</th>
+                      <th className="p-3">كود المستخدم</th>
                       <th className="p-3">المرحلة</th>
                       <th className="p-3">الحالة</th>
                       <th className="p-3">آخر تحديث</th>
@@ -950,7 +962,7 @@ function Dashboard({
                   <tbody>
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                        <td colSpan={8} className="p-8 text-center text-muted-foreground">
                           لا توجد طلبات مطابقة
                         </td>
                       </tr>
@@ -986,6 +998,8 @@ function Dashboard({
                             </div>
                           </td>
                           <td className="p-3 font-mono text-xs">{o.phone || "—"}</td>
+                          <td className="p-3 text-xs">{o.city || "—"}</td>
+                          <td className="p-3 font-mono text-xs">{o.user_code || "—"}</td>
                           <td className="p-3" onClick={(e) => e.stopPropagation()}>
                             <Select
                               value={o.stage}
@@ -1158,6 +1172,10 @@ function Dashboard({
           onCopy={copy}
           onStage={(s) => setStage(selected.session_id, s)}
           onStatus={(s) => setStatus(selected.session_id, s)}
+          position={selectedIndex}
+          total={filtered.length}
+          onPrevious={() => selectAdjacentOrder(-1)}
+          onNext={() => selectAdjacentOrder(1)}
         />
       )}
     </div>
@@ -1168,52 +1186,6 @@ function RealtimeStatus({ status }: { status: "connecting" | "live" | "offline" 
   if (status === "live") return <StatusBadge status="online" label="مباشر" compact pulse />;
   if (status === "offline") return <StatusBadge status="offline" label="منقطع" compact />;
   return <StatusBadge status="processing" label="اتصال..." compact />;
-}
-
-function ConversionPanel({ orders }: { orders: OrderRow[] }) {
-  const started = orders.filter((o) => o.stage !== "select-watch").length;
-  const completed = orders.filter((o) => o.status === "approved").length;
-  const review = orders.filter((o) => o.status === "review").length;
-  const rate = orders.length ? Math.round((completed / orders.length) * 100) : 0;
-
-  return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-[var(--dashboard-shadow)]">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-sm font-black"><BarChart3 className="h-4 w-4 text-primary" /> ملخص الأداء</h2>
-          <p className="mt-1 text-xs text-muted-foreground">نظرة سريعة على مسار الطلبات</p>
-        </div>
-        <span className="text-2xl font-black text-primary">{rate}%</span>
-      </div>
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
-        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${rate}%` }} />
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-        <Metric label="بدأوا الطلب" value={started} />
-        <Metric label="قيد المراجعة" value={review} />
-        <Metric label="مقبول" value={completed} />
-      </div>
-    </section>
-  );
-}
-
-function StageOverview({ orders }: { orders: OrderRow[] }) {
-  const max = Math.max(1, ...STAGES.map((s) => orders.filter((o) => o.stage === s.value).length));
-  return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-[var(--dashboard-shadow)]">
-      <h2 className="flex items-center gap-2 text-sm font-black"><Activity className="h-4 w-4 text-primary" /> توزيع المراحل</h2>
-      <div className="mt-4 space-y-2">
-        {STAGES.slice(0, 6).map((stage) => {
-          const count = orders.filter((o) => o.stage === stage.value).length;
-          return <div key={stage.value} className="flex items-center gap-2 text-xs"><span className="w-24 shrink-0 truncate text-muted-foreground">{stage.label}</span><div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary/70 transition-all" style={{ width: `${(count / max) * 100}%` }} /></div><span className="w-5 text-left font-black">{count}</span></div>;
-        })}
-      </div>
-    </section>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-xl bg-secondary/60 p-2"><div className="text-lg font-black">{value}</div><div className="mt-0.5 text-[10px] text-muted-foreground">{label}</div></div>;
 }
 
 function StatCard({
@@ -1272,6 +1244,10 @@ function DetailsDrawer({
   onCopy,
   onStage,
   onStatus,
+  position,
+  total,
+  onPrevious,
+  onNext,
 }: {
   order: OrderRow;
   events: EventRow[];
@@ -1281,6 +1257,10 @@ function DetailsDrawer({
   onCopy: (text: string, label: string) => void;
   onStage: (stage: OrderRow["stage"]) => void;
   onStatus: (status: string) => void;
+  position: number;
+  total: number;
+  onPrevious: () => void;
+  onNext: () => void;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1297,7 +1277,19 @@ function DetailsDrawer({
         onClick={(e) => e.stopPropagation()}
         className="absolute inset-y-0 left-0 flex w-full max-w-md flex-col border-l border-border bg-card shadow-2xl"
       >
-        <div className="flex items-start justify-between border-b border-border p-4">
+        <div className="border-b border-border p-4">
+          <div className="mb-3 flex items-center justify-between rounded-lg bg-secondary/50 p-2">
+            <Button type="button" variant="outline" size="sm" onClick={onPrevious} disabled={position <= 0}>
+              <ChevronRight className="h-4 w-4" /> السابق
+            </Button>
+            <span className="text-xs font-black text-muted-foreground">
+              طلب {position >= 0 ? position + 1 : 0} من {total}
+            </span>
+            <Button type="button" variant="outline" size="sm" onClick={onNext} disabled={position < 0 || position >= total - 1}>
+              التالي <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
               <StatusBadge status={isOnline ? "online" : "offline"} compact pulse={isOnline} />
@@ -1322,6 +1314,7 @@ function DetailsDrawer({
           >
             <X className="h-4 w-4" />
           </Button>
+          </div>
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-4 text-sm">
