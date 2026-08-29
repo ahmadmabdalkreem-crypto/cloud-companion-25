@@ -1,0 +1,520 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: "Tajawal", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cairo", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-hero-foreground: var(--hero-foreground);
+}
+
+:root {
+  --radius: 1rem;
+  --background: #F3FAF6;
+  --foreground: #47484C;
+  --card: #FFFFFF;
+  --card-foreground: #47484C;
+  --popover: #FFFFFF;
+  --popover-foreground: #47484C;
+  --primary: #00643E;
+  --primary-foreground: #FFFFFF;
+  --primary-glow: #00804D;
+  --primary-deep: #004D2F;
+  --secondary: #EAF4EF;
+  --secondary-foreground: #00643E;
+  --muted: #EAF4EF;
+  --muted-foreground: #6B6C70;
+  --accent: #F89D1B;
+  --accent-foreground: #FFFFFF;
+  --accent-hover: #E08C10;
+  --destructive: #C53B3B;
+  --destructive-foreground: #FFFFFF;
+  --success: #15803D;
+  --warning: #B7791F;
+  --border: #CCCCCC;
+  --input: #CCCCCC;
+  --ring: #00643E;
+  --icon-neutral: #939393;
+  --gold: #F89D1B;
+  --gold-soft: #FFD98A;
+  --gold-deep: #E08C10;
+  --gold-foreground: #FFFFFF;
+  --hero-foreground: #FFFFFF;
+
+  --glass-card: rgb(255 255 255 / 0.55);
+  --glass-card-strong: rgb(255 255 255 / 0.72);
+  --glass-input: rgb(255 255 255 / 0.62);
+  --glass-header: rgb(0 100 62 / 0.82);
+  --glass-footer: rgb(0 100 62 / 0.88);
+  --glass-border: rgb(255 255 255 / 0.65);
+  --glass-border-accent: rgb(0 100 62 / 0.16);
+  --glass-blur: 18px;
+  --glass-blur-strong: 28px;
+  --glass-radius: 22px;
+  --glass-radius-sm: 12px;
+  --glass-shadow: 0 18px 50px rgb(0 100 62 / 0.12);
+
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  --shadow-soft: 0 20px 60px -20px rgb(1 99 60 / 0.25);
+  --shadow-card: 0 8px 30px -12px rgb(1 99 60 / 0.15);
+  --shadow-glow: 0 0 40px -4px rgb(25 112 57 / 0.3);
+  --shadow-gold: 0 12px 40px -14px rgb(248 202 65 / 0.5);
+
+  --gradient-hero: linear-gradient(
+    165deg,
+    #004D2F 0%,
+    #00633C 55%,
+    #00804D 100%
+  );
+  --gradient-primary: linear-gradient(
+    135deg,
+    #004D2F 0%,
+    #00633C 50%,
+    #00804D 100%
+  );
+  --gradient-gold: linear-gradient(
+    135deg,
+    #E08C10 0%,
+    #F89D1B 100%
+  );
+  --gradient-card: linear-gradient(
+    180deg,
+    #FFFFFF 0%,
+    #F3FAF6 100%
+  );
+
+}
+
+@theme inline {
+  --color-primary-glow: var(--primary-glow);
+  --color-primary-deep: var(--primary-deep);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-deep: var(--gold-deep);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-icon-neutral: var(--icon-neutral);
+  --radius-glass: 22px;
+}
+
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    background-image: linear-gradient(135deg, #F3FAF6 0%, #EEF6F2 100%);
+    background-attachment: scroll;
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    font-feature-settings: "kern", "liga", "calt", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    line-height: 1.7;
+    letter-spacing: 0.005em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--color-foreground);
+  }
+
+  @media (min-width: 1024px) and (hover: hover) {
+    body {
+      background-attachment: fixed;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px; /* prevents iOS Safari zoom on focus */
+    }
+  }
+
+  ::selection {
+    background: oklch(0.52 0.14 158 / 0.25);
+  }
+}
+
+@utility text-gradient-gold {
+  background: linear-gradient(135deg, var(--gold) 0%, oklch(0.95 0.08 88) 60%, var(--gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility glass-card {
+  background: var(--glass-card);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+@utility glass-card-strong {
+  background: var(--glass-card-strong);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+@utility glass-header {
+  background: var(--glass-header);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border-bottom: 1px solid var(--glass-border-accent);
+  color: var(--hero-foreground);
+}
+
+@utility glass-footer {
+  background: var(--glass-footer);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  border-top: 1px solid var(--glass-border-accent);
+  color: var(--hero-foreground);
+}
+
+@utility glass-input {
+  background: var(--glass-input);
+  backdrop-filter: blur(12px);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-card,
+  .glass-card-strong,
+  .glass-header,
+  .glass-footer,
+  .glass-input {
+    background: rgb(255 255 255 / 0.88);
+  }
+  .glass-header,
+  .glass-footer {
+    background: var(--primary);
+  }
+}
+
+
+@utility hero-surface {
+  background: var(--gradient-hero);
+  position: relative;
+}
+
+@utility grain-overlay {
+  position: relative;
+}
+@utility grain-overlay {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(
+      oklch(1 0 0 / 0.06) 1px,
+      transparent 1px
+    );
+    background-size: 3px 3px;
+    mix-blend-mode: overlay;
+    opacity: 0.6;
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(-1.5deg); }
+}
+@keyframes shine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 oklch(0.78 0.13 82 / 0.5); }
+  100% { box-shadow: 0 0 0 18px oklch(0.78 0.13 82 / 0); }
+}
+
+@utility animate-float { animation: float-slow 7s ease-in-out infinite; }
+@utility animate-fade-up { animation: fade-up 0.7s ease-out both; }
+@utility animate-pulse-ring { animation: pulse-ring 2.2s ease-out infinite; }
+
+@utility btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      oklch(1 0 0 / 0.35) 50%,
+      transparent 70%
+    );
+    background-size: 220% 100%;
+    background-position: 200% 0;
+    transition: background-position 0.9s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  &:hover::before { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* === Mobile UX enhancements === */
+html { -webkit-text-size-adjust: 100%; }
+html, body { max-width: 100%; overflow-x: hidden; }
+body {
+  -webkit-tap-highlight-color: oklch(0.55 0.14 155 / 0.15);
+}
+button, a, [role="button"], input, select, textarea, label { touch-action: manipulation; }
+img, video, canvas, svg { max-width: 100%; height: auto; }
+
+/* Strong, visible keyboard/tap focus across the app */
+:where(input, select, textarea, button, a, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px oklch(from var(--color-primary) l c h / 0.22),
+              0 8px 22px -10px oklch(from var(--color-primary) l c h / 0.55);
+  border-radius: 12px;
+}
+/* Reinforce focus-within on wrapped form fields */
+.group:focus-within {
+  box-shadow: 0 10px 28px -14px oklch(from var(--color-primary) l c h / 0.55);
+}
+::placeholder { color: color-mix(in oklab, var(--foreground) 55%, transparent); opacity: 1; }
+
+@media (max-width: 640px) {
+  /* Prevent iOS auto-zoom on focus (needs >=16px) */
+  input, select, textarea { font-size: 16px !important; line-height: 1.5; }
+  /* Comfortable tap targets */
+  button:not([data-nosize]),
+  a[role="button"]:not([data-nosize]),
+  [role="button"]:not([data-nosize]) { min-height: 44px; }
+  input:not([type="checkbox"]):not([type="radio"]),
+  select, textarea { min-height: 48px; }
+  /* Form breathing room */
+  form { display: flex; flex-direction: column; gap: 1rem; }
+  label { font-size: 0.95rem; }
+  /* Better contrast on small screens */
+  .text-muted-foreground { color: color-mix(in oklab, var(--foreground) 72%, transparent); }
+  /* Safe-area padding for sticky bars */
+  .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+  /* Stronger mobile focus ring */
+  :where(input, select, textarea):focus-visible {
+    box-shadow: 0 0 0 4px oklch(from var(--color-primary) l c h / 0.28),
+                0 10px 24px -10px oklch(from var(--color-primary) l c h / 0.6);
+  }
+}
+
+@utility safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+/* ------------------------------------------------------------------ */
+/* Smooth scrolling + scroll performance                               */
+/* ------------------------------------------------------------------ */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* clears the sticky glass header on hash jumps */
+  text-size-adjust: 100%;
+  scrollbar-gutter: stable; /* no layout shift when content grows */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 35%, transparent) transparent;
+}
+:where(html, body) { overflow-x: clip; }
+
+/* Any scrollable container inherits momentum + smooth behaviour */
+:where([data-scroll], .scroll-area, .overflow-y-auto, .overflow-x-auto, .overflow-auto) {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 30%, transparent) transparent;
+}
+
+/* Slim, elegant scrollbars (WebKit) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--primary) 28%, transparent);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--primary) 48%, transparent);
+  background-clip: content-box;
+}
+
+/* Horizontal rails hide their scrollbar but scroll natively */
+:where(.overflow-x-auto, [data-rail], [data-snap-x]) {
+  scrollbar-width: none;
+}
+:where(.overflow-x-auto, [data-rail], [data-snap-x])::-webkit-scrollbar { display: none; }
+
+/* Skip offscreen work for long lists/sections */
+@utility content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
+}
+
+/* Promote frequently animated surfaces to their own compositor layer */
+:where(.will-animate, .glass-card, [data-reveal]) {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ------------------------------------------------------------------ */
+/* Lazy image: blur/shimmer placeholder -> cross-fade                  */
+/* ------------------------------------------------------------------ */
+.img-frame {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.img-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--muted) 88%, transparent) 20%,
+      color-mix(in oklab, var(--card) 96%, transparent) 45%,
+      color-mix(in oklab, var(--muted) 88%, transparent) 70%
+    );
+  background-size: 220% 100%;
+  animation: img-shimmer 1.4s ease-in-out infinite;
+  filter: blur(6px);
+  opacity: 1;
+  transition: opacity 420ms ease;
+  will-change: opacity;
+}
+.img-frame.is-loaded::before {
+  opacity: 0;
+  animation: none;
+}
+.img-fade {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  filter: blur(10px);
+  transform: scale(1.015) translateZ(0);
+  transition: opacity 460ms ease, filter 460ms ease, transform 560ms ease;
+}
+.img-frame.is-loaded .img-fade {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1) translateZ(0);
+}
+
+@keyframes img-shimmer {
+  from { background-position: 180% 0; }
+  to { background-position: -80% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, :where([data-scroll], .scroll-area, .overflow-y-auto, .overflow-x-auto, .overflow-auto) {
+    scroll-behavior: auto;
+  }
+  .img-frame::before { animation: none; }
+  .img-fade,
+  .img-frame.is-loaded .img-fade {
+    transition: opacity 120ms linear;
+    filter: none;
+    transform: none;
+  }
+}
+
+
+
+
+
