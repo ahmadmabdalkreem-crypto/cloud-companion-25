@@ -17,6 +17,7 @@ import { SiteHeader } from "@/components/site-header";
 import { OrderSteps } from "@/components/order-steps";
 
 import { Button } from "@/components/ui/button";
+import { ChoiceButton } from "@/components/choice-button";
 import { saveOrder } from "@/lib/order";
 import { trackEvent } from "@/lib/track";
 import { getSessionId } from "@/lib/session-id";
@@ -195,19 +196,14 @@ function SelectWatchPage() {
                 aria-label="تصفية الموديلات حسب الفئة"
               >
                 {CATEGORIES.map((c) => (
-                  <button
+                  <ChoiceButton
                     key={c.id}
-                    type="button"
                     onClick={() => setCategory(c.id)}
-                    aria-pressed={category === c.id}
-                    className={`min-h-11 flex-1 rounded-xl border text-xs font-black transition-all duration-200 ${
-                      category === c.id
-                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary"
-                        : "border-border/70 text-muted-foreground hover:border-primary/40"
-                    }`}
+                    selected={category === c.id}
+                    className="flex-1 text-xs"
                   >
                     {c.label}
-                  </button>
+                  </ChoiceButton>
                 ))}
               </div>
 
@@ -339,20 +335,14 @@ function SelectWatchPage() {
               <GroupTitle value={size.label}>المقاس</GroupTitle>
               <div className="mt-3 flex gap-2">
                 {SIZES.map((s) => (
-                  <button
+                  <ChoiceButton
                     key={s.id}
-                    type="button"
                     onClick={() => update({ size: s.id })}
-                    aria-pressed={config.size === s.id}
-                    className={
-                      "min-h-12 flex-1 rounded-xl border text-sm font-black transition-all duration-200 " +
-                      (config.size === s.id
-                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary"
-                        : "border-border/70 text-muted-foreground hover:border-primary/40")
-                    }
+                    selected={config.size === s.id}
+                    className="min-h-12 flex-1 text-sm"
                   >
                     {s.label}
-                  </button>
+                  </ChoiceButton>
                 ))}
               </div>
               <Note>{size.note}</Note>
@@ -366,20 +356,14 @@ function SelectWatchPage() {
               <GroupTitle value={material.label}>خامة السوار</GroupTitle>
               <div className="mt-3 flex gap-2">
                 {STRAPS.map((s) => (
-                  <button
+                  <ChoiceButton
                     key={s.id}
-                    type="button"
                     onClick={() => update({ material: s.id })}
-                    aria-pressed={config.material === s.id}
-                    className={
-                      "min-h-12 flex-1 rounded-xl border text-sm font-black transition-all duration-200 " +
-                      (config.material === s.id
-                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary"
-                        : "border-border/70 text-muted-foreground hover:border-primary/40")
-                    }
+                    selected={config.material === s.id}
+                    className="min-h-12 flex-1 text-sm"
                   >
                     {s.label}
-                  </button>
+                  </ChoiceButton>
                 ))}
               </div>
               <Note>{material.note} — يأتي السوار بلون الموديل المختار.</Note>
@@ -391,20 +375,14 @@ function SelectWatchPage() {
               <GroupTitle value={system.label}>نظام التشغيل</GroupTitle>
               <div className="mt-3 flex gap-2">
                 {SYSTEMS.map((s) => (
-                  <button
+                  <ChoiceButton
                     key={s.id}
-                    type="button"
                     onClick={() => update({ os: s.id })}
-                    aria-pressed={config.os === s.id}
-                    className={
-                      "min-h-12 flex-1 rounded-xl border text-sm font-black transition-all duration-200 " +
-                      (config.os === s.id
-                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary"
-                        : "border-border/70 text-muted-foreground hover:border-primary/40")
-                    }
+                    selected={config.os === s.id}
+                    className="min-h-12 flex-1 text-sm"
                   >
                     {s.label}
-                  </button>
+                  </ChoiceButton>
                 ))}
               </div>
               <Note>{system.note}</Note>

@@ -15,7 +15,7 @@ export function AppShell({ children, className, mainClassName, footer = true }: 
   return (
     <div className={cn("flex min-h-screen flex-col bg-background text-foreground", className)}>
       <SiteHeader />
-      <main className={cn("flex-1", mainClassName)}>{children}</main>
+      <div className={cn("flex-1", mainClassName)}>{children}</div>
       {footer ? <SiteFooter /> : null}
     </div>
   );

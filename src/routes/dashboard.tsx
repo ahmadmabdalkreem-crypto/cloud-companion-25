@@ -33,7 +33,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StatusBadge, type StatusTone } from "@/components/status-badge";
+import { StatusBadge } from "@/components/status-badge";
 import {
   Select,
   SelectContent,

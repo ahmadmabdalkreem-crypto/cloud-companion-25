@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Watch3D } from "@/components/watch-3d";
 import { Button } from "@/components/ui/button";
+import { ChoiceButton } from "@/components/choice-button";
 import { SYSTEMS, resolveColors, useWatchConfig } from "@/lib/watch-config";
 import { ACCENTS, SCREEN_THEMES, findTheme, useWatchScreen } from "@/lib/watch-screen";
 
@@ -81,16 +82,11 @@ function WatchSettingsPage() {
                 {SCREEN_THEMES.map((t) => {
                   const active = t.id === screen.themeId;
                   return (
-                    <button
+                    <ChoiceButton
                       key={t.id}
-                      type="button"
                       onClick={() => updateScreen({ themeId: t.id })}
-                      aria-pressed={active}
-                      className={`rounded-xl border p-3 text-right transition-all duration-300 min-h-11 ${
-                        active
-                          ? "border-primary ring-2 ring-primary/30"
-                          : "border-border hover:border-primary/50"
-                      }`}
+                      selected={active}
+                      className="block w-full p-3 text-right"
                     >
                       <span
                         className="mb-2 block h-8 w-full rounded-lg"
@@ -98,7 +94,7 @@ function WatchSettingsPage() {
                       />
                       <span className="block text-sm font-semibold text-foreground">{t.label}</span>
                       <span className="block text-[11px] text-muted-foreground">{t.note}</span>
-                    </button>
+                    </ChoiceButton>
                   );
                 })}
               </div>
@@ -154,20 +150,15 @@ function WatchSettingsPage() {
                 {SYSTEMS.map((s) => {
                   const active = s.id === config.os;
                   return (
-                    <button
+                    <ChoiceButton
                       key={s.id}
-                      type="button"
                       onClick={() => update({ os: s.id })}
-                      aria-pressed={active}
-                      className={`min-h-11 rounded-xl border p-3 text-right transition-all duration-300 ${
-                        active
-                          ? "border-primary ring-2 ring-primary/30"
-                          : "border-border hover:border-primary/50"
-                      }`}
+                      selected={active}
+                      className="block w-full p-3 text-right"
                     >
                       <span className="block text-sm font-semibold text-foreground">{s.label}</span>
                       <span className="block text-[11px] text-muted-foreground">{s.note}</span>
-                    </button>
+                    </ChoiceButton>
                   );
                 })}
               </div>
