@@ -61,6 +61,17 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: TITLE },
+      {
+        name: "description",
+        content: "لوحة إدارة طلبات ساعة أهل مصر ومتابعة العملاء والتحديثات اللحظية.",
+      },
+      { property: "og:title", content: TITLE },
+      {
+        property: "og:description",
+        content: "لوحة إدارة طلبات ساعة أهل مصر ومتابعة العملاء والتحديثات اللحظية.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -222,17 +233,17 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-background px-4">
+    <div className="dashboard-surface grid min-h-screen place-items-center px-4">
       <form
         onSubmit={handle}
-        className="w-full max-w-sm space-y-4 rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]"
+        className="w-full max-w-sm space-y-5 rounded-lg border border-border bg-card p-7 shadow-[var(--dashboard-shadow)]"
       >
         <div className="text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-lg bg-primary text-primary-foreground shadow-[var(--dashboard-shadow-accent)]">
             <ShieldCheck className="h-6 w-6" />
           </span>
-          <h1 className="mt-3 text-lg font-black">لوحة تحكم المدير</h1>
-          <p className="text-xs text-muted-foreground">أدخل بيانات الدخول للمتابعة</p>
+          <h1 className="mt-4 text-xl font-black">مركز إدارة الساعة الذكية</h1>
+          <p className="mt-1 text-xs text-muted-foreground">سجّل الدخول لمتابعة العمليات المباشرة</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="u">اسم المستخدم</Label>
