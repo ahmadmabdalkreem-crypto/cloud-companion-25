@@ -730,46 +730,22 @@ function Dashboard({
 
   const secondsSincePing = Math.floor((now - lastPing) / 1000);
 
-  return (
-    <div className="dashboard-surface min-h-screen lg:flex" dir="rtl">
-      <aside className="hidden w-64 shrink-0 flex-col bg-dashboard-sidebar text-dashboard-sidebar-foreground lg:sticky lg:top-0 lg:flex lg:h-screen">
-        <div className="flex h-20 items-center gap-3 border-b border-dashboard-sidebar-border px-6">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-dashboard-sidebar-active text-primary-foreground">
-            <Activity className="h-5 w-5" />
-          </span>
-          <div>
-            <div className="text-base font-black">ساعة أهل مصر</div>
-            <div className="text-[11px] text-dashboard-sidebar-muted">مركز العمليات الذكي</div>
-          </div>
-        </div>
-        <nav className="flex-1 space-y-2 p-4" aria-label="أقسام لوحة التحكم">
-          <a href="#overview" className="flex items-center gap-3 rounded-lg bg-dashboard-sidebar-active px-4 py-3 text-sm font-bold">
-            <Activity className="h-4 w-4" /> لوحة التحكم
-          </a>
-          <a href="#orders" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-dashboard-sidebar-muted transition-colors hover:bg-dashboard-sidebar-hover hover:text-dashboard-sidebar-foreground">
-            <Users className="h-4 w-4" /> إدارة الطلبات
-          </a>
-        </nav>
-        <div className="m-4 rounded-lg border border-dashboard-sidebar-border bg-dashboard-sidebar-hover p-4">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-dashboard-sidebar-muted">حالة النظام</span>
-            <RealtimeStatus status={rtStatus} />
-          </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-dashboard-sidebar-muted">
-            <span>تحديث تلقائي</span><span>كل 5 ثوانٍ</span>
-          </div>
-        </div>
-      </aside>
+  /** فتح تفاصيل العميل + تحويل حالته آلياً من "جديد" إلى "قيد المراجعة" */
+  function openOrder(order: OrderRow) {
+    setSelected(order);
+    if (order.status === "new") void setStatus(order.session_id, "review");
+  }
 
-      <div className="min-w-0 flex-1">
-      <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
-        <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground lg:hidden">
+  return (
+    <div className="dashboard-surface flex h-screen flex-col overflow-hidden" dir="rtl">
+      <header className="z-20 shrink-0 border-b border-border bg-card/95 backdrop-blur">
+        <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
               <Activity className="h-4 w-4" />
             </span>
-            <div>
-              <h1 className="text-base font-black">مراقبة الطلبات الحالية</h1>
+            <div className="min-w-0">
+              <h1 className="truncate text-base font-black">مركز العمليات — ساعة أهل مصر</h1>
               <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
                 <RealtimeStatus status={rtStatus} />
                 <span>آخر مزامنة: {secondsSincePing === 0 ? "الآن" : `منذ ${secondsSincePing}ث`}</span>
@@ -777,13 +753,19 @@ function Dashboard({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={exportCsv}>
+            <StatPill label="الطلبات" value={stats.total} />
+            <StatPill label="اليوم" value={stats.today} />
+            <StatPill label="انتظار" value={stats.inProc} tone="warning" />
+            <StatPill label="مقبول" value={stats.approved} tone="success" />
+            <StatPill label="متصل" value={stats.online} tone="accent" />
+            <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
+            <Button variant="outline" size="sm" onClick={exportCsv} title="تصدير CSV">
               <Download className="h-4 w-4" />
-              تصدير CSV
+              <span className="hidden lg:inline">تصدير</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => void load()}>
+            <Button variant="outline" size="sm" onClick={() => void load()} title="تحديث">
               <RefreshCw className="h-4 w-4" />
-              تحديث
+              <span className="hidden lg:inline">تحديث</span>
             </Button>
             <Button
               variant="outline"
@@ -793,7 +775,6 @@ function Dashboard({
               title="إعدادات التنبيهات"
             >
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">الإعدادات</span>
             </Button>
             <Button
               variant={alertsEnabled ? "secondary" : "outline"}
@@ -802,24 +783,17 @@ function Dashboard({
               title="تنبيهات الطلبات الجديدة"
             >
               {alertsEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-              <span className="hidden md:inline">{alertsEnabled ? "التنبيهات مفعلة" : "تفعيل التنبيهات"}</span>
             </Button>
             <Button variant="ghost" size="sm" onClick={onLogout}>
               <LogOut className="h-4 w-4" />
-              خروج
+              <span className="hidden sm:inline">خروج</span>
             </Button>
           </div>
         </div>
-      </header>
-
-      {settingsOpen && (
-        <section className="border-b border-border bg-secondary/30">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-4">
-            <div className="me-auto">
-              <h2 className="text-sm font-black">إعدادات تنبيهات الطلبات</h2>
-              <p className="mt-1 text-xs text-muted-foreground">تحكم في إشعارات الطلبات الجديدة وصوت التنبيه.</p>
-            </div>
-            <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-3 text-xs font-bold">
+        {settingsOpen && (
+          <div className="flex flex-wrap items-center gap-3 border-t border-border bg-secondary/30 px-4 py-3 lg:px-6">
+            <p className="me-auto text-xs font-black">إعدادات تنبيهات الطلبات الجديدة</p>
+            <label className="flex min-h-[40px] cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-bold">
               <input
                 type="checkbox"
                 className="accent-primary"
@@ -832,44 +806,50 @@ function Dashboard({
               <Bell className="h-4 w-4 text-primary" aria-hidden="true" />
               إشعارات سطح المكتب
             </label>
-            <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-3 text-xs font-bold">
+            <label className="flex min-h-[40px] cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-bold">
               <input
                 type="checkbox"
                 className="accent-primary"
                 checked={notificationSound}
                 onChange={(event) => updateNotificationSound(event.target.checked)}
               />
-              {notificationSound ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+              {notificationSound ? (
+                <Volume2 className="h-4 w-4 text-primary" />
+              ) : (
+                <VolumeX className="h-4 w-4 text-muted-foreground" />
+              )}
               صوت التنبيه
             </label>
           </div>
-        </section>
-      )}
+        )}
+      </header>
 
-      <main id="overview" className="space-y-6 px-4 py-5 lg:px-8 lg:py-7">
-        {/* KPIs */}
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="إجمالي الطلبات" value={stats.total} icon={<Activity className="h-4 w-4" />} detail={`${stats.today} اليوم`} />
-          <StatCard label="قيد الانتظار" value={stats.inProc} icon={<Clock className="h-4 w-4" />} detail="تحتاج متابعة" tone="warning" />
-          <StatCard label="تمت الموافقة" value={stats.approved} icon={<ShieldCheck className="h-4 w-4" />} detail="طلبات ناجحة" tone="success" />
-          <StatCard label="متصلون الآن" value={stats.online} icon={<Users className="h-4 w-4" />} detail="نشاط مباشر" accent />
-        </section>
-
-        <div id="orders" className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-          {/* LEFT: filters + orders table */}
-          <div className="space-y-4">
-            <section className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 shadow-[var(--dashboard-shadow)]">
-              <div className="relative min-w-[220px] flex-1">
-                <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="بحث بالاسم / الهاتف / المعرّف / كود المستخدم"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  className="pr-9"
-                />
-              </div>
+      {/* ثلاث أعمدة: يمين = الطلبات، وسط = مساحة العمل، يسار = المتصلون والأحداث */}
+      <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-4 lg:grid-cols-[340px_minmax(0,1fr)_300px] lg:overflow-hidden lg:p-4">
+        {/* RIGHT: قائمة الطلبات */}
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)] lg:h-full">
+          <div className="shrink-0 space-y-3 border-b border-border p-3">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 text-sm font-black">
+                <Users className="h-4 w-4 text-primary" />
+                طلبات العملاء
+              </h2>
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-black text-primary">
+                {filtered.length} / {orders.length}
+              </span>
+            </div>
+            <div className="relative">
+              <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="بحث بالاسم / الهاتف / الكود"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="pr-9"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -882,7 +862,7 @@ function Dashboard({
                 </SelectContent>
               </Select>
               <Select value={stageFilter} onValueChange={setStageFilter}>
-                <SelectTrigger className="w-44">
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -895,7 +875,7 @@ function Dashboard({
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -906,8 +886,7 @@ function Dashboard({
                   ))}
                 </SelectContent>
               </Select>
-              <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-input bg-background px-3 py-2 text-xs font-bold">
-
+              <label className="flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-xl border border-input bg-background text-xs font-bold">
                 <input
                   type="checkbox"
                   className="accent-primary"
@@ -916,269 +895,270 @@ function Dashboard({
                 />
                 المتصلون فقط
               </label>
-              {(q || statusFilter !== "all" || stageFilter !== "all" || onlineOnly) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setQ("");
-                    setStatusFilter("all");
-                    setStageFilter("all");
-                    setOnlineOnly(false);
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                  مسح الفلاتر
-                </Button>
-              )}
-              <span className="ms-auto rounded-full bg-secondary px-3 py-1 text-[11px] font-black text-primary">
-                {filtered.length} / {orders.length}
-              </span>
-
-            </section>
-
-            <section className="overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)]">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-                <div>
-                  <h2 className="text-sm font-black">طلبات العملاء</h2>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">اضغط على أي طلب لعرض بياناته والتنقل بين الطلبات</p>
-                </div>
-                <StatusBadge status="review" label={`${filtered.length} طلب`} compact />
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1080px] text-right text-sm">
-                  <thead className="bg-dashboard-table-head text-xs font-black text-muted-foreground">
-                    <tr>
-                      <th className="p-3">العميل</th>
-                      <th className="p-3">الهاتف</th>
-                      <th className="p-3">المدينة</th>
-                      <th className="p-3">كود المستخدم</th>
-                      <th className="p-3">المرحلة</th>
-                      <th className="p-3">الحالة</th>
-                      <th className="p-3">آخر تحديث</th>
-                      <th className="p-3">تحكم</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="p-8 text-center text-muted-foreground">
-                          لا توجد طلبات مطابقة
-                        </td>
-                      </tr>
-                    )}
-                    {visible.map((o) => {
-                      const isOnline = onlineSet.has(o.session_id);
-                      const isFresh = flashRef.current.has(o.id);
-
-                      return (
-                        <tr
-                          key={o.id}
-                          onClick={() => setSelected(o)}
-                          className={`cursor-pointer border-t border-border align-middle transition-colors hover:bg-dashboard-row-hover ${
-                            isFresh ? "animate-pulse bg-primary/5" : ""
-                          } ${selected?.id === o.id ? "bg-primary/10" : ""}`}
-                        >
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`inline-block h-2 w-2 rounded-full ${
-                                  isOnline ? "animate-pulse bg-success" : "bg-muted-foreground/40"
-                                }`}
-                                title={isOnline ? "متصل" : "غير متصل"}
-                              />
-                              <div>
-                                <div className="font-bold">
-                                  {o.name || <em className="text-muted-foreground">بلا اسم</em>}
-                                </div>
-                                <div className="font-mono text-[10px] text-muted-foreground">
-                                  {o.session_id.slice(0, 12)}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-3 font-mono text-xs">{o.phone || "—"}</td>
-                          <td className="p-3 text-xs">{o.city || "—"}</td>
-                          <td className="p-3 font-mono text-xs">{o.user_code || "—"}</td>
-                          <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                            <Select
-                              value={o.stage}
-                              onValueChange={(v) => setStage(o.session_id, v as OrderRow["stage"])}
-                            >
-                              <SelectTrigger className="h-8 w-40 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {STAGES.map((s) => (
-                                  <SelectItem key={s.value} value={s.value}>
-                                    <Send className="ml-1 inline h-3 w-3" />
-                                    {s.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                            <Select value={o.status} onValueChange={(v) => setStatus(o.session_id, v)}>
-                              <SelectTrigger
-                                className={`h-8 w-28 text-xs font-bold ${STATUS_STYLE[o.status] ?? ""}`}
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {STATUSES.map((s) => (
-                                  <SelectItem key={s.value} value={s.value}>
-                                    {s.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="p-3 text-[11px] text-muted-foreground">
-                            {timeAgo(o.updated_at)}
-                          </td>
-                          <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex flex-wrap items-center gap-1">
-                              <QuickActions
-                                onAction={(a) => quickAction(o.session_id, a)}
-                                status={o.status}
-                                stage={o.stage}
-                              />
-                              <span className="mx-1 h-5 w-px bg-border" />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setSelected(o)}
-                                className="h-8 min-h-8 w-8 min-w-8"
-                                title="تفاصيل"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => remove(o.session_id)}
-                                className="h-8 min-h-8 w-8 min-w-8"
-                                title="حذف"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              {filtered.length > visible.length && (
-                <div className="border-t border-border p-3 text-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                  >
-                    عرض المزيد ({filtered.length - visible.length})
-                  </Button>
-                </div>
-              )}
-            </section>
-
+            </div>
+            {(q || statusFilter !== "all" || stageFilter !== "all" || onlineOnly) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setQ("");
+                  setStatusFilter("all");
+                  setStageFilter("all");
+                  setOnlineOnly(false);
+                }}
+              >
+                <X className="h-4 w-4" />
+                مسح الفلاتر
+              </Button>
+            )}
           </div>
 
-          {/* RIGHT: presence + live event feed */}
-          <aside className="space-y-4">
-             <section className="rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-sm font-black">
-                  <span className="grid h-6 w-6 place-items-center rounded-lg bg-success/15 text-success">
-                    <Users className="h-3.5 w-3.5" />
-                  </span>
-                  المتصلون الآن
-                </h2>
-                <span className="rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-black text-success">
-                  {visitors.length}
+          {/* تمرير سلس ومستقل لقائمة الطلبات */}
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto scroll-smooth p-3">
+            {filtered.length === 0 && (
+              <p className="rounded-lg bg-secondary/40 p-6 text-center text-xs text-muted-foreground">
+                لا توجد طلبات مطابقة
+              </p>
+            )}
+            {visible.map((o) => (
+              <OrderCard
+                key={o.id}
+                order={o}
+                isOnline={onlineSet.has(o.session_id)}
+                isFresh={flashRef.current.has(o.id)}
+                isSelected={selected?.id === o.id}
+                onOpen={() => openOrder(o)}
+                onAction={(a) => void quickAction(o.session_id, a)}
+                onDelete={() => void remove(o.session_id)}
+              />
+            ))}
+            {filtered.length > visible.length && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              >
+                عرض المزيد ({filtered.length - visible.length})
+              </Button>
+            )}
+          </div>
+        </section>
+
+        {/* CENTER: مساحة العمل */}
+        <section className="min-h-0 overflow-y-auto scroll-smooth lg:h-full">
+          {selected ? (
+            <OrderWorkspace
+              order={selected}
+              events={events.filter((e) => e.session_id === selected.session_id)}
+              isOnline={onlineSet.has(selected.session_id)}
+              currentPath={pathBySession[selected.session_id]}
+              onClose={() => setSelected(null)}
+              onCopy={copy}
+              onStage={(s) => void setStage(selected.session_id, s)}
+              onStatus={(s) => void setStatus(selected.session_id, s)}
+              onAction={(a) => void quickAction(selected.session_id, a)}
+              position={selectedIndex}
+              total={filtered.length}
+              onPrevious={() => selectAdjacentOrder(-1)}
+              onNext={() => selectAdjacentOrder(1)}
+            />
+          ) : (
+            <div className="grid h-full min-h-[320px] place-items-center rounded-lg border border-dashed border-border bg-card/50 p-8 text-center">
+              <div>
+                <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-secondary text-primary">
+                  <Eye className="h-6 w-6" />
                 </span>
+                <h2 className="mt-4 text-base font-black">مساحة العمل جاهزة</h2>
+                <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                  اختر أي طلب من القائمة على اليمين لعرض بياناته الكاملة والتحكم في مرحلته وحالته من هنا.
+                </p>
               </div>
-              <ul className="max-h-72 space-y-2 overflow-y-auto text-xs">
-                {visitors.length === 0 && (
-                  <li className="rounded-lg bg-secondary/40 p-3 text-center text-muted-foreground">
-                    لا يوجد زوار حالياً
-                  </li>
-                )}
-                {visitors.map((v) => {
-                  const order = orders.find((o) => o.session_id === v.sessionId);
-                  return (
-                    <li
-                      key={v.sessionId}
-                      className="flex items-center justify-between gap-2 rounded-lg bg-secondary/40 p-2"
+            </div>
+          )}
+        </section>
+
+        {/* LEFT: المتصلون + الأحداث اللحظية */}
+        <aside className="flex min-h-0 flex-col gap-4 lg:h-full">
+          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)]">
+            <div className="flex shrink-0 items-center justify-between border-b border-border p-3">
+              <h2 className="flex items-center gap-2 text-sm font-black">
+                <span className="grid h-6 w-6 place-items-center rounded-lg bg-success/15 text-success">
+                  <Users className="h-3.5 w-3.5" />
+                </span>
+                المتصلون الآن
+              </h2>
+              <span className="rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-black text-success">
+                {visitors.length}
+              </span>
+            </div>
+            <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto scroll-smooth p-3 text-xs">
+              {visitors.length === 0 && (
+                <li className="rounded-lg bg-secondary/40 p-3 text-center text-muted-foreground">
+                  لا يوجد زوار حالياً
+                </li>
+              )}
+              {visitors.map((v) => {
+                const order = orders.find((o) => o.session_id === v.sessionId);
+                return (
+                  <li key={v.sessionId}>
+                    <button
+                      type="button"
+                      onClick={() => order && openOrder(order)}
+                      className="flex w-full items-center justify-between gap-2 rounded-lg bg-secondary/40 p-2 text-right transition-colors hover:bg-dashboard-row-hover"
                     >
-                      <div className="min-w-0">
-                        <div className="truncate text-xs font-bold">
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs font-bold">
                           {order?.name || <span className="text-muted-foreground">زائر</span>}
-                        </div>
-                        <div className="truncate font-mono text-[10px] text-muted-foreground">
+                        </span>
+                        <span className="block truncate font-mono text-[10px] text-muted-foreground">
                           {v.path}
-                        </div>
-                      </div>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-black text-success">
+                        </span>
+                      </span>
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-black text-success">
                         <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
                         نشط
                       </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-
-             <section className="rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
-              <h2 className="mb-3 text-sm font-black">آخر الأحداث اللحظية</h2>
-              <ul ref={eventFeedRef} className="max-h-80 space-y-2 overflow-y-auto text-xs">
-                {events.slice(0, 60).map((e) => (
-                  <li
-                    key={e.id}
-                    className="flex items-center justify-between gap-2 rounded-lg bg-secondary/40 p-2"
-                  >
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {e.session_id.slice(0, 8)}
-                    </span>
-                    <span className="flex-1 truncate text-xs font-bold">
-                      {STAGE_LABEL[e.stage] ?? e.stage}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {new Date(e.created_at).toLocaleTimeString("ar-EG")}
-                    </span>
+                    </button>
                   </li>
-                ))}
-                {events.length === 0 && (
-                  <li className="text-center text-muted-foreground">لا أحداث بعد</li>
-                )}
-              </ul>
-            </section>
-          </aside>
-        </div>
-      </main>
-      </div>
+                );
+              })}
+            </ul>
+          </section>
 
-      {selected && (
-        <DetailsDrawer
-          order={selected}
-          events={events.filter((e) => e.session_id === selected.session_id)}
-          isOnline={onlineSet.has(selected.session_id)}
-          currentPath={pathBySession[selected.session_id]}
-          onClose={() => setSelected(null)}
-          onCopy={copy}
-          onStage={(s) => setStage(selected.session_id, s)}
-          onStatus={(s) => setStatus(selected.session_id, s)}
-          position={selectedIndex}
-          total={filtered.length}
-          onPrevious={() => selectAdjacentOrder(-1)}
-          onNext={() => selectAdjacentOrder(1)}
-        />
-      )}
+          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)]">
+            <h2 className="shrink-0 border-b border-border p-3 text-sm font-black">
+              الأحداث اللحظية
+            </h2>
+            <ul
+              ref={eventFeedRef}
+              className="min-h-0 flex-1 space-y-2 overflow-y-auto scroll-smooth p-3 text-xs"
+            >
+              {events.slice(0, 60).map((e) => (
+                <li
+                  key={e.id}
+                  className="flex items-center justify-between gap-2 rounded-lg bg-secondary/40 p-2"
+                >
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    {e.session_id.slice(0, 8)}
+                  </span>
+                  <span className="flex-1 truncate text-xs font-bold">
+                    {STAGE_LABEL[e.stage] ?? e.stage}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {new Date(e.created_at).toLocaleTimeString("ar-EG")}
+                  </span>
+                </li>
+              ))}
+              {events.length === 0 && (
+                <li className="text-center text-muted-foreground">لا أحداث بعد</li>
+              )}
+            </ul>
+          </section>
+        </aside>
+      </div>
     </div>
+  );
+}
+
+function StatPill({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: number;
+  tone?: "default" | "success" | "warning" | "accent";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "bg-success/15 text-success"
+      : tone === "warning"
+        ? "bg-warning/15 text-warning"
+        : tone === "accent"
+          ? "bg-primary text-primary-foreground"
+          : "bg-secondary text-primary";
+  return (
+    <span
+      className={`hidden items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black sm:inline-flex ${toneClass}`}
+    >
+      {label}
+      <span className="text-xs">{value}</span>
+    </span>
+  );
+}
+
+function OrderCard({
+  order,
+  isOnline,
+  isFresh,
+  isSelected,
+  onOpen,
+  onAction,
+  onDelete,
+}: {
+  order: OrderRow;
+  isOnline: boolean;
+  isFresh: boolean;
+  isSelected: boolean;
+  onOpen: () => void;
+  onAction: (action: QuickActionKey) => void;
+  onDelete: () => void;
+}) {
+  return (
+    <article
+      onClick={onOpen}
+      className={`cursor-pointer rounded-lg border p-3 transition-colors hover:bg-dashboard-row-hover ${
+        isSelected ? "border-primary bg-primary/5" : "border-border bg-card"
+      } ${isFresh ? "animate-pulse" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className={`inline-block h-2 w-2 shrink-0 rounded-full ${
+              isOnline ? "animate-pulse bg-success" : "bg-muted-foreground/40"
+            }`}
+            title={isOnline ? "متصل" : "غير متصل"}
+          />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-bold">
+              {order.name || <em className="text-muted-foreground">بلا اسم</em>}
+            </div>
+            <div className="truncate font-mono text-[10px] text-muted-foreground">
+              {order.phone || order.session_id.slice(0, 12)}
+            </div>
+          </div>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black ${
+            STATUS_STYLE[order.status] ?? "bg-secondary text-primary"
+          }`}
+        >
+          {STATUSES.find((s) => s.value === order.status)?.label ?? order.status}
+        </span>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+        <span className="truncate">{STAGE_LABEL[order.stage] ?? order.stage}</span>
+        <span className="shrink-0">{timeAgo(order.updated_at)}</span>
+      </div>
+      <div
+        className="mt-2 flex flex-wrap items-center gap-1 border-t border-border pt-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <QuickActions onAction={onAction} status={order.status} stage={order.stage} />
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          onClick={onDelete}
+          className="ms-auto h-8 min-h-8 w-8 min-w-8"
+          title="حذف"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </article>
   );
 }
 
