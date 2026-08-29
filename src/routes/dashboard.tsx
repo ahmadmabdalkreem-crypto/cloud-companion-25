@@ -617,7 +617,7 @@ function Dashboard({
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [q, statusFilter, stageFilter, onlineOnly, sortBy]);
+  }, [q, statusFilter, stageFilter, onlineOnly, sortBy, needsActionOnly]);
 
 
   const stats = useMemo(() => {
