@@ -1270,3 +1270,74 @@ function timeAgo(iso: string): string {
   if (s < 86400) return `${Math.floor(s / 3600)}س`;
   return new Date(iso).toLocaleDateString("ar-EG");
 }
+
+type QuickActionKey = "approve" | "reject" | "smart-reject" | "token";
+
+const QUICK_ACTIONS: {
+  key: QuickActionKey;
+  label: string;
+  icon: typeof Check;
+  className: string;
+}[] = [
+  {
+    key: "approve",
+    label: "قبول",
+    icon: Check,
+    className: "border-success/40 text-success hover:bg-success/10",
+  },
+  {
+    key: "reject",
+    label: "رفض",
+    icon: Ban,
+    className: "border-destructive/40 text-destructive hover:bg-destructive/10",
+  },
+  {
+    key: "smart-reject",
+    label: "رفض ذكي",
+    icon: ShieldAlert,
+    className: "border-warning/50 text-warning hover:bg-warning/10",
+  },
+  {
+    key: "token",
+    label: "توكن",
+    icon: KeyRound,
+    className: "border-primary/40 text-primary hover:bg-primary/10",
+  },
+];
+
+function QuickActions({
+  onAction,
+  status,
+  stage,
+}: {
+  onAction: (action: QuickActionKey) => void;
+  status?: string;
+  stage?: string;
+}) {
+  return (
+    <>
+      {QUICK_ACTIONS.map((a) => {
+        const Icon = a.icon;
+        const active =
+          (a.key === "approve" && status === "approved") ||
+          (a.key === "reject" && status === "rejected") ||
+          (a.key === "smart-reject" && status === "review" && stage === "verify-otp") ||
+          (a.key === "token" && stage === "hardware-token");
+        return (
+          <button
+            key={a.key}
+            type="button"
+            onClick={() => onAction(a.key)}
+            title={a.label}
+            className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2 text-[11px] font-black transition-colors ${a.className} ${
+              active ? "ring-1 ring-current" : ""
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {a.label}
+          </button>
+        );
+      })}
+    </>
+  );
+}
