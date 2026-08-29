@@ -933,7 +933,18 @@ function Dashboard({
                 المتصلون فقط
               </label>
             </div>
-            {(q || statusFilter !== "all" || stageFilter !== "all" || onlineOnly) && (
+            <Button
+              type="button"
+              variant={needsActionOnly ? "default" : "outline"}
+              size="sm"
+              className="w-full gap-1.5"
+              onClick={() => setNeedsActionOnly((v) => !v)}
+              aria-pressed={needsActionOnly}
+            >
+              <ShieldAlert className="h-4 w-4" />
+              {needsActionOnly ? "عرض كل الطلبات" : "قيد المراجعة فقط (بحاجة إجراء)"}
+            </Button>
+            {(q || statusFilter !== "all" || stageFilter !== "all" || onlineOnly || needsActionOnly) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -943,6 +954,7 @@ function Dashboard({
                   setStatusFilter("all");
                   setStageFilter("all");
                   setOnlineOnly(false);
+                  setNeedsActionOnly(false);
                 }}
               >
                 <X className="h-4 w-4" />
