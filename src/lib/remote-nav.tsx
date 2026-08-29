@@ -94,9 +94,15 @@ export function RemoteNavListener() {
     const unsub = subscribeRemoteStage(sid, apply);
 
     // رسائل الرفض: تُعرض حسب الصفحة الحالية للمستخدم
-    const unsubReject = subscribeRemoteReject(sid, () => {
+    const unsubReject = subscribeRemoteReject(sid, ({ stage }) => {
       if (cancelled) return;
-      const msg = REJECT_MESSAGE[pathname] ?? DEFAULT_REJECT;
+      // عند الرفض: يعود العميل إلى الصفحة التي كان بها وتظهر رسالة الخطأ الخاصة بها
+      const target = (stage && STAGE_TO_PATH[stage]) || pathname;
+      const msg = REJECT_MESSAGE[target] ?? DEFAULT_REJECT;
+      if (target !== pathname) {
+        lastStage.current = stage ?? lastStage.current;
+        void navigate({ to: target });
+      }
       toast.error(msg.title, { description: msg.description, duration: 8000 });
     });
 

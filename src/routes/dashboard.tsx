@@ -347,11 +347,13 @@ function Dashboard({
         stageFilter: string;
         onlineOnly: boolean;
         sortBy: SortKey;
+        needsActionOnly: boolean;
       }>;
       if (typeof s.q === "string") setQ(s.q);
       if (typeof s.statusFilter === "string") setStatusFilter(s.statusFilter);
       if (typeof s.stageFilter === "string") setStageFilter(s.stageFilter);
       if (typeof s.onlineOnly === "boolean") setOnlineOnly(s.onlineOnly);
+      if (typeof s.needsActionOnly === "boolean") setNeedsActionOnly(s.needsActionOnly);
       if (s.sortBy === "recent" || s.sortBy === "oldest" || s.sortBy === "updated") {
         setSortBy(s.sortBy);
       }
@@ -364,12 +366,12 @@ function Dashboard({
     try {
       window.localStorage.setItem(
         FILTERS_KEY,
-        JSON.stringify({ q, statusFilter, stageFilter, onlineOnly, sortBy }),
+        JSON.stringify({ q, statusFilter, stageFilter, onlineOnly, sortBy, needsActionOnly }),
       );
     } catch {
       // Ignore storage restrictions.
     }
-  }, [q, statusFilter, stageFilter, onlineOnly, sortBy]);
+  }, [q, statusFilter, stageFilter, onlineOnly, sortBy, needsActionOnly]);
 
 
 
@@ -688,7 +690,9 @@ function Dashboard({
       ),
     );
 
-    if (cfg.reject) pushRemoteReject(sessionId, action);
+    // عند الرفض نُعيد العميل إلى الصفحة التي كان بها (أو مرحلة الرفض الذكي)
+    if (cfg.reject) pushRemoteReject(sessionId, action, (cfg.stage ?? nextStage) ?? undefined);
+    if (!cfg.stage && nextStage) pushRemoteStage(sessionId, nextStage);
     if (cfg.stage) pushRemoteStage(sessionId, cfg.stage);
 
     try {
