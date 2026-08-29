@@ -37,7 +37,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "/" },
-      { rel: "preload", as: "image", href: heroWatches.url, fetchpriority: "high" },
+      { rel: "preload", as: "image", href: heroWatches.url, fetchPriority: "high" },
     ],
   }),
   component: HomePage,
