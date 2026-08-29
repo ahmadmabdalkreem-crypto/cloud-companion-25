@@ -15,9 +15,12 @@ function verifyCreds(u: string, p: string) {
 
 export const adminLogin = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) => credsSchema.parse(raw))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
+    // Wrong credentials are an expected outcome, not a server crash: return a
+    // result instead of throwing so the client shows the banner without a
+    // runtime-error overlay / blank screen.
     if (!verifyCreds(data.username, data.password)) {
-      throw new Error("بيانات الدخول غير صحيحة");
+      return { ok: false, error: "بيانات الدخول غير صحيحة" };
     }
     return { ok: true };
   });
