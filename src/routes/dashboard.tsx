@@ -1186,7 +1186,7 @@ function ConversionPanel({ orders }: { orders: OrderRow[] }) {
   const rate = orders.length ? Math.round((completed / orders.length) * 100) : 0;
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+    <section className="rounded-lg border border-border bg-card p-5 shadow-[var(--dashboard-shadow)]">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-sm font-black"><BarChart3 className="h-4 w-4 text-primary" /> ملخص الأداء</h2>
@@ -1209,7 +1209,7 @@ function ConversionPanel({ orders }: { orders: OrderRow[] }) {
 function StageOverview({ orders }: { orders: OrderRow[] }) {
   const max = Math.max(1, ...STAGES.map((s) => orders.filter((o) => o.stage === s.value).length));
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+    <section className="rounded-lg border border-border bg-card p-5 shadow-[var(--dashboard-shadow)]">
       <h2 className="flex items-center gap-2 text-sm font-black"><Activity className="h-4 w-4 text-primary" /> توزيع المراحل</h2>
       <div className="mt-4 space-y-2">
         {STAGES.slice(0, 6).map((stage) => {
@@ -1230,33 +1230,44 @@ function StatCard({
   value,
   icon,
   accent,
+  detail,
+  tone = "default",
 }: {
   label: string;
   value: number;
   icon?: React.ReactNode;
   accent?: boolean;
+  detail?: string;
+  tone?: "default" | "success" | "warning";
 }) {
+  const toneClass =
+    tone === "success"
+      ? "text-success"
+      : tone === "warning"
+        ? "text-warning"
+        : "text-foreground";
   return (
     <div
-      className={`rounded-2xl border p-4 shadow-[var(--shadow-soft)] ${
+      className={`rounded-lg border p-5 shadow-[var(--dashboard-shadow)] ${
         accent
-          ? "border-success/30 bg-success/5"
+          ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-card"
       }`}
     >
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className={`flex items-center justify-between text-xs ${accent ? "text-primary-foreground/75" : "text-muted-foreground"}`}>
         <span>{label}</span>
         {icon && (
           <span
             className={`grid h-7 w-7 place-items-center rounded-lg ${
-              accent ? "bg-success/15 text-success" : "bg-secondary text-primary"
+              accent ? "bg-primary-foreground/15 text-primary-foreground" : "bg-secondary text-primary"
             }`}
           >
             {icon}
           </span>
         )}
       </div>
-      <div className="mt-1 text-2xl font-black">{value}</div>
+      <div className={`mt-2 text-3xl font-black ${accent ? "text-primary-foreground" : toneClass}`}>{value}</div>
+      {detail ? <div className={`mt-1 text-[11px] ${accent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{detail}</div> : null}
     </div>
   );
 }
