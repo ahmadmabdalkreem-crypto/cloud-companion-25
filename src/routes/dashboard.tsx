@@ -1326,6 +1326,22 @@ function OrderWorkspace({
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
           <QuickActions onAction={onAction} status={order.status} stage={order.stage} />
         </div>
+
+        {/* جميع صفحات الموقع كأزرار توجيه سريعة */}
+        <div className="mt-3 border-t border-border pt-3">
+          <p className="mb-2 text-[11px] font-black text-muted-foreground">
+            توجيه العميل إلى صفحة
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {STAGES.map((s) => {
+              const active = order.stage === s.value;
+              return (
+                <Button
+                  key={s.value}
+                  type="button"
+                  variant={active ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onStage(
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
