@@ -440,7 +440,7 @@ function Dashboard({
   }, [visitors]);
 
   const filtered = useMemo(() => {
-    return orders.filter((o) => {
+    const list = orders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (stageFilter !== "all" && o.stage !== stageFilter) return false;
       if (onlineOnly && !onlineSet.has(o.session_id)) return false;
@@ -455,7 +455,21 @@ function Dashboard({
       }
       return true;
     });
-  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet]);
+    const t = (v: string) => new Date(v).getTime();
+    const sorted = [...list];
+    if (sortBy === "oldest") sorted.sort((a, b) => t(a.created_at) - t(b.created_at));
+    else if (sortBy === "updated") sorted.sort((a, b) => t(b.updated_at) - t(a.updated_at));
+    else sorted.sort((a, b) => t(b.created_at) - t(a.created_at));
+    return sorted;
+  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet, sortBy]);
+
+  // Keep the rendered table light: render a page at a time.
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [q, statusFilter, stageFilter, onlineOnly, sortBy]);
+
 
   const stats = useMemo(() => {
     const total = orders.length;
