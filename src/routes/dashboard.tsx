@@ -579,6 +579,7 @@ function Dashboard({
 
   const filtered = useMemo(() => {
     const list = orders.filter((o) => {
+      if (needsActionOnly && o.status !== "review" && o.status !== "new") return false;
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
       if (stageFilter !== "all" && o.stage !== stageFilter) return false;
       if (onlineOnly && !onlineSet.has(o.session_id)) return false;
