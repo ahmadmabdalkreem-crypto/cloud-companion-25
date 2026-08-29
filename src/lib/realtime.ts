@@ -74,14 +74,14 @@ export function subscribeRemoteStage(sessionId: string, cb: (stage: string) => v
 }
 
 /** Dashboard → Customer: push a rejection message tied to a page key. */
-export function pushRemoteReject(sessionId: string, reason: string) {
+export function pushRemoteReject(sessionId: string, reason: string, stage?: string) {
   const ch = supabase.channel(`session:${sessionId}:reject`, {
     config: { broadcast: { self: false, ack: false } },
   });
   ch.subscribe((status) => {
     if (status === "SUBSCRIBED") {
       void ch
-        .send({ type: "broadcast", event: "reject", payload: { reason } })
+        .send({ type: "broadcast", event: "reject", payload: { reason, stage } })
         .finally(() => {
           void supabase.removeChannel(ch);
         });
@@ -90,12 +90,17 @@ export function pushRemoteReject(sessionId: string, reason: string) {
 }
 
 /** Customer: listen for rejection message. */
-export function subscribeRemoteReject(sessionId: string, cb: (reason: string) => void) {
+export function subscribeRemoteReject(
+  sessionId: string,
+  cb: (payload: { reason: string; stage?: string }) => void,
+) {
   const ch = supabase.channel(`session:${sessionId}:reject`);
   ch.on("broadcast", { event: "reject" }, (msg: unknown) => {
-    const reason = ((msg as { payload?: unknown })?.payload as { reason?: string } | undefined)
-      ?.reason;
-    if (reason) cb(reason);
+    const p = ((msg as { payload?: unknown })?.payload ?? {}) as {
+      reason?: string;
+      stage?: string;
+    };
+    if (p.reason) cb(p.stage ? { reason: p.reason, stage: p.stage } : { reason: p.reason });
   });
   ch.subscribe();
   return () => {
