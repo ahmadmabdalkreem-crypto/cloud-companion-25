@@ -75,7 +75,7 @@ export function subscribeRemoteStage(sessionId: string, cb: (stage: string) => v
 
 /** Dashboard → Customer: push a rejection message tied to a page key. */
 export function pushRemoteReject(sessionId: string, reason: string) {
-  const ch = supabase.channel(`session:${sessionId}`, {
+  const ch = supabase.channel(`session:${sessionId}:reject`, {
     config: { broadcast: { self: false, ack: false } },
   });
   ch.subscribe((status) => {
