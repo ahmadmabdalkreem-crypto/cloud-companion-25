@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
-import {
+import { Loader2,
   Activity,
   Ban,
   Bell,
@@ -1009,7 +1009,7 @@ function Dashboard({
               currentPath={pathBySession[selected.session_id]}
               onClose={() => setSelected(null)}
               onCopy={copy}
-              onStage={(s) => void setStage(selected.session_id, s)}
+              onStage={(s) => setStage(selected.session_id, s)}
               onStatus={(s) => void setStatus(selected.session_id, s)}
               onAction={(a) => void quickAction(selected.session_id, a)}
               position={selectedIndex}
