@@ -36,12 +36,14 @@ async def attempt(page, username: str, password: str):
         await page.wait_for_selector("#u", state="detached", timeout=8000)
         return True, ""
     except Exception:
-        toast = ""
+        message = ""
         try:
-            toast = (await page.locator("[data-sonner-toast]").first.inner_text(timeout=3000)).strip()
+            message = (
+                await page.locator("[data-testid=admin-login-error]").first.inner_text(timeout=8000)
+            ).strip()
         except Exception:
             pass
-        return False, toast
+        return False, message
 
 
 async def main() -> int:
