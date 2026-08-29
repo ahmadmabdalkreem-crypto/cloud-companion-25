@@ -310,6 +310,43 @@ function Dashboard({
     }
   }, []);
 
+  // Restore saved filters/sort so a refresh keeps the admin's view.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(FILTERS_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw) as Partial<{
+        q: string;
+        statusFilter: string;
+        stageFilter: string;
+        onlineOnly: boolean;
+        sortBy: SortKey;
+      }>;
+      if (typeof s.q === "string") setQ(s.q);
+      if (typeof s.statusFilter === "string") setStatusFilter(s.statusFilter);
+      if (typeof s.stageFilter === "string") setStageFilter(s.stageFilter);
+      if (typeof s.onlineOnly === "boolean") setOnlineOnly(s.onlineOnly);
+      if (s.sortBy === "recent" || s.sortBy === "oldest" || s.sortBy === "updated") {
+        setSortBy(s.sortBy);
+      }
+    } catch {
+      // Ignore malformed or unavailable storage.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        FILTERS_KEY,
+        JSON.stringify({ q, statusFilter, stageFilter, onlineOnly, sortBy }),
+      );
+    } catch {
+      // Ignore storage restrictions.
+    }
+  }, [q, statusFilter, stageFilter, onlineOnly, sortBy]);
+
+
+
   useEffect(() => {
     ordersRef.current = orders;
     alertsRef.current = alertsEnabled;
