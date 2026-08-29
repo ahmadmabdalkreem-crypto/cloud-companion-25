@@ -63,7 +63,7 @@ export const Route = createFileRoute("/select-watch")({
 
 function GroupTitleBase({ children, value }: { children: React.ReactNode; value?: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3">
       <h2 className="text-sm font-black text-foreground">{children}</h2>
       {value ? (
         <span className="truncate text-xs font-bold text-primary">{value}</span>
@@ -128,19 +128,21 @@ function SelectWatchPage() {
   }, [navigate, summary, watchId]);
 
   return (
-    <div className="min-h-screen bg-[oklch(0.965_0.017_86)]">
+    <div className="min-h-screen bg-background">
       <SiteHeader />
 
       <main className="mx-auto max-w-6xl px-3 pb-28 sm:px-4 sm:pb-10">
         <OrderSteps current="collection" />
 
-        <h1 className="mt-4 text-center text-xl font-black text-foreground sm:mt-6 sm:text-3xl">
-          صمّم ساعتك الذكية ثم أكمل الطلب ببيانات التوصيل
-        </h1>
+        <div className="mx-auto mt-4 max-w-2xl text-center sm:mt-6">
+          <span className="text-xs font-black text-primary">خطوة واحدة لاختيار ساعتك</span>
+          <h1 className="mt-2 text-2xl font-black text-foreground sm:text-4xl">صمّم ساعتك بطريقتك</h1>
+          <p className="mt-2 text-sm text-muted-foreground">اختر الموديل والمقاس والسوار، وشاهد اختياراتك مباشرة قبل المتابعة.</p>
+        </div>
 
         {/* ملخص سريع لاختياراتك الحالية */}
         <div
-          className="mt-3 flex flex-wrap items-center justify-center gap-1.5 rounded-2xl border border-border/70 bg-card px-3 py-2 text-[11px] font-black text-foreground sm:mt-4 sm:gap-2 sm:text-xs"
+          className="mt-4 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2.5 text-[11px] font-black text-foreground shadow-[var(--dashboard-shadow)] sm:gap-2 sm:text-xs"
           aria-label="ملخص اختياراتك الحالية"
         >
           <span className="rounded-full bg-secondary px-2.5 py-1 text-secondary-foreground">
@@ -162,10 +164,10 @@ function SelectWatchPage() {
         <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
           {/* الساعة الحيّة — يمين سطح المكتب، أعلى الجوال */}
           <section className="lg:sticky lg:top-6 lg:self-start">
-            <div className="rounded-[1.5rem] border border-border/60 bg-card p-3 shadow-[var(--shadow-card)] sm:rounded-[2rem] sm:p-5">
+            <div className="rounded-lg border border-border bg-card p-3 shadow-[var(--dashboard-shadow)] sm:p-5">
               <GroupTitle value={selectedWatch.name}>اختر الساعة</GroupTitle>
 
-              <div className="relative mt-3 overflow-hidden rounded-[1.25rem] bg-[radial-gradient(120%_90%_at_50%_18%,#fffdf8_0%,#f6f1e6_52%,#ece5d6_100%)] p-3">
+              <div className="product-stage relative mt-3 overflow-hidden rounded-lg p-3">
                 <LazyImage
                   key={selectedWatch.id}
                   src={selectedWatch.image}

@@ -65,23 +65,10 @@ function HomePage() {
 
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden px-4 pt-8 pb-12 sm:pt-12 sm:pb-16">
+        <section className="relative overflow-hidden px-4 py-8 sm:py-12">
           <div className="mx-auto max-w-6xl">
-            <Reveal className="text-center">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black text-primary ring-1 ring-primary/20 animate-fade-in">
-                <Sparkles className="h-3 w-3" aria-hidden="true" />
-                إصدار محدود · تصميم احترافي
-              </span>
-              <h1 className="mt-4 text-3xl font-black leading-tight text-foreground sm:text-5xl lg:text-6xl">
-                ساعة أهل مصر الذكية
-              </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-relaxed text-muted-foreground sm:text-lg">
-                ادفع بلمسة واحدة من معصمك، وتابع صحتك ونشاطك اليومي بدقة، بتصميم أنيق وأداء موثوق.
-              </p>
-            </Reveal>
-
-            <Reveal delay={120} className="mt-8 sm:mt-10">
-              <div className="group relative mx-auto overflow-hidden rounded-[1.5rem] bg-[radial-gradient(120%_90%_at_50%_20%,#fbf4e6_0%,#f2ead6_60%,#e8dfc7_100%)] shadow-[var(--shadow-soft)] ring-1 ring-border/60 sm:rounded-[2rem]">
+            <Reveal className="grid overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-soft)] md:grid-cols-2">
+              <div className="product-stage group relative min-h-[300px] overflow-hidden md:order-2 md:min-h-[560px]">
                 <LazyImage
                   src={heroWatches.url}
                   alt="ساعة أهل مصر الذكية بتصميم دائري وشاشة AMOLED"
@@ -89,56 +76,33 @@ function HomePage() {
                   height={1140}
                   priority
                   sizes="(max-width: 1024px) 100vw, 1024px"
-                  wrapperClassName="block h-auto w-full"
-                  className="block h-auto w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                  wrapperClassName="absolute inset-0 h-full w-full"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
-
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/85 via-background/30 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-2 p-4 sm:gap-3 sm:p-6">
-                  {["تصميم دائري فاخر", "شاشة AMOLED", "بطارية تدوم ٧ أيام"].map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full bg-card/85 px-3 py-1 text-[11px] font-black text-foreground ring-1 ring-border/60 backdrop-blur sm:text-xs"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-primary-deep/75 via-transparent to-transparent" />
               </div>
-            </Reveal>
-
-            <Reveal delay={180} className="mt-8">
-              <dl className="mx-auto grid max-w-2xl grid-cols-3 gap-3">
-                {[
-                  ["لمسة", "دفع فوري"],
-                  ["٧ أيام", "بطارية"],
-                  ["24/7", "متابعة"],
-                ].map(([v, k]) => (
-                  <div key={k} className="glass-card rounded-2xl px-2 py-3 text-center transition-transform hover:-translate-y-0.5">
-                    <dt className="text-lg font-black text-primary sm:text-xl">{v}</dt>
-                    <dd className="mt-1 text-[11px] font-bold text-muted-foreground">{k}</dd>
-                  </div>
-                ))}
-              </dl>
-
-              <div className="mt-7 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
-                <Button asChild size="lg" className="h-12 rounded-2xl px-7 text-base font-black shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-0.5">
+              <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-14">
+                <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-black text-primary">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> إصدار محدود
+                </span>
+                <h1 className="mt-5 text-4xl font-black leading-tight text-foreground lg:text-5xl">ساعة أهل مصر <span className="text-primary">الذكية</span></h1>
+                <p className="mt-4 max-w-md text-base font-medium leading-8 text-muted-foreground">ادفع بلمسة من معصمك، وتابع صحتك ونشاطك اليومي بتصميم أنيق وأداء موثوق.</p>
+                <dl className="mt-7 grid grid-cols-2 gap-4">
+                  <div className="border-r-2 border-primary pr-4"><dt className="text-xs text-muted-foreground">عمر البطارية</dt><dd className="mt-1 text-lg font-black">حتى ٧ أيام</dd></div>
+                  <div className="border-r-2 border-primary pr-4"><dt className="text-xs text-muted-foreground">الحماية</dt><dd className="mt-1 text-lg font-black">ضمان سنة</dd></div>
+                </dl>
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg" className="h-12 flex-1 rounded-lg px-7 text-base font-black shadow-[var(--dashboard-shadow-accent)]">
                   <Link to="/select-watch">
-                    اطلب ساعتك الآن
+                    ابدأ اختيار ساعتك
                     <ArrowLeft className="ms-2 h-5 w-5" aria-hidden="true" />
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="glass-card h-12 rounded-2xl px-7 text-base font-black"
-                >
+                <Button asChild size="lg" variant="outline" className="h-12 rounded-lg px-7 text-base font-black">
                   <a href="#models">استعراض الموديلات</a>
                 </Button>
               </div>
-
-              <ul className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-bold text-muted-foreground sm:text-sm">
+              <ul className="mt-7 flex flex-wrap gap-x-4 gap-y-2 border-t border-border pt-6 text-xs font-bold text-muted-foreground">
                 {TRUST.map((t) => (
                   <li key={t.label} className="flex items-center gap-1.5">
                     <t.icon className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -146,6 +110,7 @@ function HomePage() {
                   </li>
                 ))}
               </ul>
+              </div>
             </Reveal>
           </div>
         </section>
@@ -164,7 +129,7 @@ function HomePage() {
               <Reveal as="li" key={w.id} delay={i * 60}>
                 <Link
                   to="/select-watch"
-                  className="group block h-full overflow-hidden rounded-3xl border border-border/60 bg-card shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                   className="group block h-full overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <div className="relative aspect-square overflow-hidden bg-[radial-gradient(120%_90%_at_50%_18%,#fffdf8_0%,#f5efe1_60%,#eae2cc_100%)]">
                     <LazyImage
@@ -223,7 +188,7 @@ function HomePage() {
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map((f, i) => (
               <Reveal as="li" key={f.title} delay={i * 80}>
-                <div className="glass-card h-full rounded-3xl p-5 transition-all duration-300 hover:-translate-y-1">
+                 <div className="h-full rounded-lg border border-border bg-card p-5 shadow-[var(--dashboard-shadow)] transition-all duration-300 hover:-translate-y-1">
                   <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
                     <f.icon className="h-5 w-5" aria-hidden="true" />
                   </span>
@@ -240,7 +205,7 @@ function HomePage() {
         {/* Closing CTA */}
         <section className="px-4 pb-16">
           <Reveal className="mx-auto max-w-4xl">
-            <div className="glass-card-strong rounded-[2rem] p-7 text-center sm:p-10">
+            <div className="rounded-xl border border-border bg-card p-7 text-center shadow-[var(--dashboard-shadow)] sm:p-10">
               <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
                 <Watch className="h-6 w-6" aria-hidden="true" />
               </span>
