@@ -121,6 +121,17 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 const CREDS_KEY = "elite:admin";
+const FILTERS_KEY = "elite:dashboard-filters";
+const PAGE_SIZE = 25;
+
+type SortKey = "recent" | "oldest" | "updated";
+
+const SORTS: { value: SortKey; label: string }[] = [
+  { value: "recent", label: "الأحدث إنشاءً" },
+  { value: "oldest", label: "الأقدم إنشاءً" },
+  { value: "updated", label: "آخر تحديث" },
+];
+
 
 function saveCreds(u: string, p: string) {
   sessionStorage.setItem(CREDS_KEY, JSON.stringify({ u, p }));
