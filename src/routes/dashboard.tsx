@@ -274,6 +274,9 @@ function Dashboard({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [onlineOnly, setOnlineOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<SortKey>("recent");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   const [selected, setSelected] = useState<OrderRow | null>(null);
   const [lastPing, setLastPing] = useState<number>(Date.now());
   const [now, setNow] = useState(() => Date.now());
