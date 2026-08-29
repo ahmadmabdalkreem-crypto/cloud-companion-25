@@ -577,7 +577,8 @@ function Dashboard({
       (o) => new Date(o.created_at).toDateString() === new Date().toDateString(),
     ).length;
     const inProc = orders.filter((o) => o.stage === "processing").length;
-    return { total, today, inProc, online: visitors.length };
+    const approved = orders.filter((o) => o.status === "approved").length;
+    return { total, today, inProc, approved, online: visitors.length };
   }, [orders, visitors.length]);
 
   async function setStage(sessionId: string, stage: OrderRow["stage"]) {
@@ -718,18 +719,51 @@ function Dashboard({
   const secondsSincePing = Math.floor((now - lastPing) / 1000);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="dashboard-surface min-h-screen lg:flex" dir="rtl">
+      <aside className="hidden w-64 shrink-0 flex-col bg-dashboard-sidebar text-dashboard-sidebar-foreground lg:sticky lg:top-0 lg:flex lg:h-screen">
+        <div className="flex h-20 items-center gap-3 border-b border-dashboard-sidebar-border px-6">
+          <span className="grid h-10 w-10 place-items-center rounded-lg bg-dashboard-sidebar-active text-primary-foreground">
+            <Activity className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="text-base font-black">ساعة أهل مصر</div>
+            <div className="text-[11px] text-dashboard-sidebar-muted">مركز العمليات الذكي</div>
+          </div>
+        </div>
+        <nav className="flex-1 space-y-2 p-4" aria-label="أقسام لوحة التحكم">
+          <a href="#overview" className="flex items-center gap-3 rounded-lg bg-dashboard-sidebar-active px-4 py-3 text-sm font-bold">
+            <Activity className="h-4 w-4" /> لوحة التحكم
+          </a>
+          <a href="#orders" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-dashboard-sidebar-muted transition-colors hover:bg-dashboard-sidebar-hover hover:text-dashboard-sidebar-foreground">
+            <Users className="h-4 w-4" /> إدارة الطلبات
+          </a>
+          <a href="#performance" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-dashboard-sidebar-muted transition-colors hover:bg-dashboard-sidebar-hover hover:text-dashboard-sidebar-foreground">
+            <BarChart3 className="h-4 w-4" /> تقارير الأداء
+          </a>
+        </nav>
+        <div className="m-4 rounded-lg border border-dashboard-sidebar-border bg-dashboard-sidebar-hover p-4">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-dashboard-sidebar-muted">حالة النظام</span>
+            <RtBadge status={rtStatus} />
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-dashboard-sidebar-muted">
+            <span>تحديث تلقائي</span><span>كل 5 ثوانٍ</span>
+          </div>
+        </div>
+      </aside>
+
+      <div className="min-w-0 flex-1">
       <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-8">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground lg:hidden">
               <Activity className="h-4 w-4" />
             </span>
             <div>
-              <h1 className="text-sm font-black">لوحة تحكم لحظية</h1>
+              <h1 className="text-base font-black">مراقبة الطلبات الحالية</h1>
               <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
                 <RtBadge status={rtStatus} />
-                <span>آخر تحديث: {secondsSincePing === 0 ? "الآن" : `${secondsSincePing}ث`}</span>
+                <span>آخر مزامنة: {secondsSincePing === 0 ? "الآن" : `منذ ${secondsSincePing}ث`}</span>
               </p>
             </div>
           </div>
@@ -750,7 +784,7 @@ function Dashboard({
               title="إعدادات التنبيهات"
             >
               <Settings className="h-4 w-4" />
-              الإعدادات
+              <span className="hidden sm:inline">الإعدادات</span>
             </Button>
             <Button
               variant={alertsEnabled ? "secondary" : "outline"}
@@ -759,7 +793,7 @@ function Dashboard({
               title="تنبيهات الطلبات الجديدة"
             >
               {alertsEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-              {alertsEnabled ? "التنبيهات مفعلة" : "تفعيل التنبيهات"}
+              <span className="hidden md:inline">{alertsEnabled ? "التنبيهات مفعلة" : "تفعيل التنبيهات"}</span>
             </Button>
             <Button variant="ghost" size="sm" onClick={onLogout}>
               <LogOut className="h-4 w-4" />
@@ -803,24 +837,24 @@ function Dashboard({
         </section>
       )}
 
-      <main className="mx-auto max-w-7xl space-y-5 px-4 py-5">
+      <main id="overview" className="space-y-6 px-4 py-5 lg:px-8 lg:py-7">
         {/* KPIs */}
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="متصلون الآن" value={stats.online} icon={<Users className="h-4 w-4" />} accent />
-          <StatCard label="طلبات اليوم" value={stats.today} icon={<Flame className="h-4 w-4" />} />
-          <StatCard label="قيد الانتظار" value={stats.inProc} icon={<Clock className="h-4 w-4" />} />
-          <StatCard label="إجمالي الطلبات" value={stats.total} icon={<Activity className="h-4 w-4" />} />
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard label="إجمالي الطلبات" value={stats.total} icon={<Activity className="h-4 w-4" />} detail={`${stats.today} اليوم`} />
+          <StatCard label="قيد الانتظار" value={stats.inProc} icon={<Clock className="h-4 w-4" />} detail="تحتاج متابعة" tone="warning" />
+          <StatCard label="تمت الموافقة" value={stats.approved} icon={<ShieldCheck className="h-4 w-4" />} detail="طلبات ناجحة" tone="success" />
+          <StatCard label="متصلون الآن" value={stats.online} icon={<Users className="h-4 w-4" />} detail="نشاط مباشر" accent />
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+        <section id="performance" className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
           <ConversionPanel orders={orders} />
           <StageOverview orders={orders} />
         </section>
 
-        <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        <div id="orders" className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
           {/* LEFT: filters + orders table */}
           <div className="space-y-4">
-            <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3">
+            <section className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 shadow-[var(--dashboard-shadow)]">
               <div className="relative min-w-[220px] flex-1">
                 <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -899,10 +933,10 @@ function Dashboard({
 
             </section>
 
-            <section className="overflow-hidden rounded-2xl border border-border bg-card">
+            <section className="overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)]">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[900px] text-right text-sm">
-                  <thead className="bg-secondary/60 text-xs font-black">
+                  <thead className="bg-dashboard-table-head text-xs font-black text-muted-foreground">
                     <tr>
                       <th className="p-3">العميل</th>
                       <th className="p-3">الهاتف</th>
@@ -928,7 +962,7 @@ function Dashboard({
                         <tr
                           key={o.id}
                           onClick={() => setSelected(o)}
-                          className={`cursor-pointer border-t border-border align-top transition-colors hover:bg-secondary/40 ${
+                          className={`cursor-pointer border-t border-border align-middle transition-colors hover:bg-dashboard-row-hover ${
                             isFresh ? "animate-pulse bg-primary/5" : ""
                           } ${selected?.id === o.id ? "bg-primary/10" : ""}`}
                         >
@@ -1035,7 +1069,7 @@ function Dashboard({
 
           {/* RIGHT: presence + live event feed */}
           <aside className="space-y-4">
-            <section className="rounded-2xl border border-border bg-card p-4">
+             <section className="rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-sm font-black">
                   <span className="grid h-6 w-6 place-items-center rounded-lg bg-success/15 text-success">
@@ -1078,7 +1112,7 @@ function Dashboard({
               </ul>
             </section>
 
-            <section className="rounded-2xl border border-border bg-card p-4">
+             <section className="rounded-lg border border-border bg-card p-4 shadow-[var(--dashboard-shadow)]">
               <h2 className="mb-3 text-sm font-black">آخر الأحداث اللحظية</h2>
               <ul ref={eventFeedRef} className="max-h-80 space-y-2 overflow-y-auto text-xs">
                 {events.slice(0, 60).map((e) => (
@@ -1105,6 +1139,7 @@ function Dashboard({
           </aside>
         </div>
       </main>
+      </div>
 
       {selected && (
         <DetailsDrawer
