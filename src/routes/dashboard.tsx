@@ -187,7 +187,13 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
     setLoading(true);
     setError(null);
     try {
-      await adminLogin({ data: { username: user, password: pass } });
+      const res = await adminLogin({ data: { username: user, password: pass } });
+      if (!res?.ok) {
+        const message = res?.error ?? "بيانات الدخول غير صحيحة";
+        setError(message);
+        toast.error(message);
+        return;
+      }
       saveCreds(user, pass);
       onSuccess(user, pass);
     } catch (err) {
