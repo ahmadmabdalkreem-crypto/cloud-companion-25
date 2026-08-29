@@ -969,7 +969,19 @@ function Dashboard({
                   </tbody>
                 </table>
               </div>
+              {filtered.length > visible.length && (
+                <div className="border-t border-border p-3 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  >
+                    عرض المزيد ({filtered.length - visible.length})
+                  </Button>
+                </div>
+              )}
             </section>
+
           </div>
 
           {/* RIGHT: presence + live event feed */}
