@@ -871,7 +871,7 @@ function Dashboard({
                         </td>
                       </tr>
                     )}
-                    {filtered.map((o) => {
+                    {visible.map((o) => {
                       const isOnline = onlineSet.has(o.session_id);
                       const isFresh = flashRef.current.has(o.id);
 
