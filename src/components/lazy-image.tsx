@@ -47,7 +47,6 @@ function LazyImageBase({
         onLoad={handleLoad}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
-        fetchPriority={priority ? "high" : "auto"}
         className={`img-fade ${className}`}
       />
     </span>
