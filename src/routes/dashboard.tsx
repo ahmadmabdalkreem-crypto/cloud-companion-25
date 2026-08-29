@@ -837,7 +837,13 @@ function Dashboard({
                             {timeAgo(o.updated_at)}
                           </td>
                           <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex gap-1">
+                            <div className="flex flex-wrap items-center gap-1">
+                              <QuickActions
+                                onAction={(a) => quickAction(o.session_id, a)}
+                                status={o.status}
+                                stage={o.stage}
+                              />
+                              <span className="mx-1 h-5 w-px bg-border" />
                               <button
                                 onClick={() => setSelected(o)}
                                 className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-secondary"
