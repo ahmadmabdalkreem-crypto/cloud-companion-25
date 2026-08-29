@@ -600,7 +600,7 @@ function Dashboard({
     else if (sortBy === "updated") sorted.sort((a, b) => t(b.updated_at) - t(a.updated_at));
     else sorted.sort((a, b) => t(b.created_at) - t(a.created_at));
     return sorted;
-  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet, sortBy]);
+  }, [orders, q, statusFilter, stageFilter, onlineOnly, onlineSet, sortBy, needsActionOnly]);
 
   // Keep the rendered table light: render a page at a time.
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
