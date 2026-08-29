@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { CountdownRing } from "@/components/countdown-ring";
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
 import { trackEvent } from "@/lib/track";
 import { getSessionId } from "@/lib/session-id";
 
@@ -54,17 +56,12 @@ function HardwareTokenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <h1 className="text-base font-black text-foreground">جهاز رمز الأمان</h1>
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-secondary text-primary">
-            <Calculator className="h-4 w-4" aria-hidden="true" />
-          </span>
+    <AppShell>
+      <div className="mx-auto max-w-md space-y-6 px-4 py-10">
+        <div className="text-center">
+          <StatusBadge status="processing" label="تحقق أمني" />
+          <h1 className="mt-3 text-2xl font-black">جهاز رمز الأمان</h1>
         </div>
-      </header>
-
-      <main className="mx-auto max-w-md space-y-6 px-4 py-10">
         <div className="rounded-3xl bg-[image:var(--gradient-hero)] p-8 text-center shadow-[var(--shadow-soft)]">
           <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-hero-foreground text-primary shadow-[var(--shadow-card)]">
             <Calculator className="h-7 w-7" aria-hidden="true" />
@@ -108,7 +105,7 @@ function HardwareTokenPage() {
         <Button onClick={handleSubmit} className="h-12 w-full rounded-xl text-base">
           ربط الساعة
         </Button>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

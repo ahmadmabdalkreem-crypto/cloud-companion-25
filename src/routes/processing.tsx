@@ -19,6 +19,8 @@ import { getSessionId } from "@/lib/session-id";
 import { getRemoteStage } from "@/lib/tracking.functions";
 import { subscribeRemoteStage } from "@/lib/realtime";
 import { LazyImage } from "@/components/lazy-image";
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
 
 const TITLE = "جارٍ مراجعة طلبك — ساعة أهل مصر الذكية";
 const DESCRIPTION = "نراجع بياناتك حالياً بأمان تام لإتمام طلب ساعة أهل مصر الذكية الذكية.";
@@ -113,7 +115,7 @@ function ProcessingPage() {
   const offset = circumference * (1 - progress / 100);
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppShell>
       <section className="relative overflow-hidden">
         <LazyImage
             src={heroBg}
@@ -124,10 +126,7 @@ function ProcessingPage() {
             className="h-full w-full object-cover"
           />
         <div className="relative mx-auto max-w-3xl px-4 pb-40 pt-16 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-gold/50 bg-gold/10 px-4 py-1.5 text-xs font-bold text-gold backdrop-blur-sm">
-            <Hourglass className="h-3.5 w-3.5" aria-hidden="true" />
-            مراجعة قيد التنفيذ
-          </span>
+          <StatusBadge status="processing" label="مراجعة قيد التنفيذ" className="border-gold/50 bg-gold/10 text-gold" />
           <h1 className="mt-6 text-3xl font-black text-hero-foreground sm:text-4xl">
             جارٍ مراجعة طلبك
           </h1>
@@ -300,7 +299,7 @@ function ProcessingPage() {
           بياناتك محمية ومشفّرة بالكامل
         </p>
       </main>
-    </div>
+    </AppShell>
   );
 }
 

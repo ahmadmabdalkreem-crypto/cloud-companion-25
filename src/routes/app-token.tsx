@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Landmark, Smartphone, Watch } from "lucide-react";
+import { Smartphone, Watch } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { CountdownRing } from "@/components/countdown-ring";
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
 import { trackEvent } from "@/lib/track";
 import { getSessionId } from "@/lib/session-id";
 
@@ -49,17 +51,12 @@ function AppTokenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-primary text-primary-foreground">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <h1 className="text-base font-black">ربط الساعة الذكية</h1>
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary-foreground/15">
-            <Landmark className="h-4 w-4" aria-hidden="true" />
-          </span>
+    <AppShell>
+      <div className="mx-auto max-w-md space-y-6 px-4 py-10">
+        <div className="text-center">
+          <StatusBadge status="processing" label="الخطوة الأخيرة" />
+          <h1 className="mt-3 text-2xl font-black">ربط الساعة الذكية</h1>
         </div>
-      </header>
-
-      <main className="mx-auto max-w-md space-y-6 px-4 py-10">
         <div className="flex items-center gap-4 rounded-2xl border border-primary/25 bg-secondary p-4">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-card text-primary">
             <Watch className="h-6 w-6" aria-hidden="true" />
@@ -111,7 +108,7 @@ function AppTokenPage() {
             ربط الساعة
           </Button>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

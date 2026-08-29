@@ -10,6 +10,8 @@ import { useOrder } from "@/lib/order";
 import { trackEvent } from "@/lib/track";
 import { getSessionId } from "@/lib/session-id";
 import { LazyImage } from "@/components/lazy-image";
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
 
 const TITLE = "رمز التحقق المؤقت — ساعة أهل مصر الذكية";
 const DESCRIPTION = "أدخل رمز التحقق المكوّن من 6 أرقام لتأكيد هويتك ومتابعة طلب ساعة أهل مصر الذكية.";
@@ -71,7 +73,7 @@ function VerifyOtpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppShell>
       <section className="relative overflow-hidden">
         <LazyImage
             src={heroBg}
@@ -82,10 +84,7 @@ function VerifyOtpPage() {
             className="h-full w-full object-cover"
           />
         <div className="relative mx-auto max-w-3xl px-4 pb-40 pt-16 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-hero-foreground/25 bg-hero-foreground/10 px-4 py-1.5 text-xs font-bold text-hero-foreground backdrop-blur-sm">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            حماية ثنائية
-          </span>
+          <StatusBadge status="processing" label="حماية ثنائية" className="border-hero-foreground/25 bg-hero-foreground/10 text-hero-foreground" />
           <h1 className="mt-6 text-3xl font-black text-hero-foreground sm:text-4xl">
             رمز التحقق المؤقت
           </h1>
@@ -153,6 +152,6 @@ function VerifyOtpPage() {
           نسخة تجريبية للعرض فقط
         </p>
       </main>
-    </div>
+    </AppShell>
   );
 }

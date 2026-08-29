@@ -4,10 +4,11 @@ import { toast } from "sonner";
 import {
   Activity,
   Ban,
-  BarChart3,
   Bell,
   BellOff,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Copy,
   Download,
@@ -33,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StatusBadge } from "@/components/status-badge";
 import {
   Select,
   SelectContent,
@@ -128,7 +130,7 @@ const STATUS_STYLE: Record<string, string> = {
   new: "bg-primary/10 text-primary",
   review: "bg-warning/15 text-warning",
   approved: "bg-success/15 text-success",
-  rejected: "bg-rose-500/15 text-rose-700",
+  rejected: "bg-destructive/10 text-destructive",
 };
 
 const CREDS_KEY = "elite:admin";
@@ -263,7 +265,7 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
           <p
             data-testid="admin-login-error"
             role="alert"
-            className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-700"
+            className="rounded-2xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive"
           >
             {error}
           </p>
@@ -565,6 +567,16 @@ function Dashboard({
 
   // Keep the rendered table light: render a page at a time.
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const selectedIndex = selected ? filtered.findIndex((order) => order.id === selected.id) : -1;
+
+  const selectAdjacentOrder = useCallback(
+    (direction: -1 | 1) => {
+      if (selectedIndex < 0) return;
+      const nextOrder = filtered[selectedIndex + direction];
+      if (nextOrder) setSelected(nextOrder);
+    },
+    [filtered, selectedIndex],
+  );
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -737,14 +749,11 @@ function Dashboard({
           <a href="#orders" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-dashboard-sidebar-muted transition-colors hover:bg-dashboard-sidebar-hover hover:text-dashboard-sidebar-foreground">
             <Users className="h-4 w-4" /> إدارة الطلبات
           </a>
-          <a href="#performance" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-dashboard-sidebar-muted transition-colors hover:bg-dashboard-sidebar-hover hover:text-dashboard-sidebar-foreground">
-            <BarChart3 className="h-4 w-4" /> تقارير الأداء
-          </a>
         </nav>
         <div className="m-4 rounded-lg border border-dashboard-sidebar-border bg-dashboard-sidebar-hover p-4">
           <div className="flex items-center justify-between text-xs">
             <span className="text-dashboard-sidebar-muted">حالة النظام</span>
-            <RtBadge status={rtStatus} />
+            <RealtimeStatus status={rtStatus} />
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] text-dashboard-sidebar-muted">
             <span>تحديث تلقائي</span><span>كل 5 ثوانٍ</span>
@@ -762,7 +771,7 @@ function Dashboard({
             <div>
               <h1 className="text-base font-black">مراقبة الطلبات الحالية</h1>
               <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <RtBadge status={rtStatus} />
+                <RealtimeStatus status={rtStatus} />
                 <span>آخر مزامنة: {secondsSincePing === 0 ? "الآن" : `منذ ${secondsSincePing}ث`}</span>
               </p>
             </div>
@@ -844,11 +853,6 @@ function Dashboard({
           <StatCard label="قيد الانتظار" value={stats.inProc} icon={<Clock className="h-4 w-4" />} detail="تحتاج متابعة" tone="warning" />
           <StatCard label="تمت الموافقة" value={stats.approved} icon={<ShieldCheck className="h-4 w-4" />} detail="طلبات ناجحة" tone="success" />
           <StatCard label="متصلون الآن" value={stats.online} icon={<Users className="h-4 w-4" />} detail="نشاط مباشر" accent />
-        </section>
-
-        <section id="performance" className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
-          <ConversionPanel orders={orders} />
-          <StageOverview orders={orders} />
         </section>
 
         <div id="orders" className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -934,12 +938,21 @@ function Dashboard({
             </section>
 
             <section className="overflow-hidden rounded-lg border border-border bg-card shadow-[var(--dashboard-shadow)]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+                <div>
+                  <h2 className="text-sm font-black">طلبات العملاء</h2>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">اضغط على أي طلب لعرض بياناته والتنقل بين الطلبات</p>
+                </div>
+                <StatusBadge status="review" label={`${filtered.length} طلب`} compact />
+              </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[900px] text-right text-sm">
+                <table className="w-full min-w-[1080px] text-right text-sm">
                   <thead className="bg-dashboard-table-head text-xs font-black text-muted-foreground">
                     <tr>
                       <th className="p-3">العميل</th>
                       <th className="p-3">الهاتف</th>
+                      <th className="p-3">المدينة</th>
+                      <th className="p-3">كود المستخدم</th>
                       <th className="p-3">المرحلة</th>
                       <th className="p-3">الحالة</th>
                       <th className="p-3">آخر تحديث</th>
@@ -949,7 +962,7 @@ function Dashboard({
                   <tbody>
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                        <td colSpan={8} className="p-8 text-center text-muted-foreground">
                           لا توجد طلبات مطابقة
                         </td>
                       </tr>
@@ -985,6 +998,8 @@ function Dashboard({
                             </div>
                           </td>
                           <td className="p-3 font-mono text-xs">{o.phone || "—"}</td>
+                          <td className="p-3 text-xs">{o.city || "—"}</td>
+                          <td className="p-3 font-mono text-xs">{o.user_code || "—"}</td>
                           <td className="p-3" onClick={(e) => e.stopPropagation()}>
                             <Select
                               value={o.stage}
@@ -1030,20 +1045,26 @@ function Dashboard({
                                 stage={o.stage}
                               />
                               <span className="mx-1 h-5 w-px bg-border" />
-                              <button
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
                                 onClick={() => setSelected(o)}
-                                className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-secondary"
+                                className="h-8 min-h-8 w-8 min-w-8"
                                 title="تفاصيل"
                               >
                                 <Eye className="h-4 w-4" />
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
                                 onClick={() => remove(o.session_id)}
-                                className="grid h-8 w-8 place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
+                                className="h-8 min-h-8 w-8 min-w-8"
                                 title="حذف"
                               >
                                 <Trash2 className="h-4 w-4" />
-                              </button>
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -1151,78 +1172,20 @@ function Dashboard({
           onCopy={copy}
           onStage={(s) => setStage(selected.session_id, s)}
           onStatus={(s) => setStatus(selected.session_id, s)}
+          position={selectedIndex}
+          total={filtered.length}
+          onPrevious={() => selectAdjacentOrder(-1)}
+          onNext={() => selectAdjacentOrder(1)}
         />
       )}
     </div>
   );
 }
 
-function RtBadge({ status }: { status: "connecting" | "live" | "offline" }) {
-  if (status === "live") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-black text-success">
-        <Wifi className="h-3 w-3" /> LIVE
-      </span>
-    );
-  }
-  if (status === "offline") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-black text-rose-700">
-        <WifiOff className="h-3 w-3" /> منقطع
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-black text-warning">
-      <Wifi className="h-3 w-3" /> اتصال...
-    </span>
-  );
-}
-
-function ConversionPanel({ orders }: { orders: OrderRow[] }) {
-  const started = orders.filter((o) => o.stage !== "select-watch").length;
-  const completed = orders.filter((o) => o.status === "approved").length;
-  const review = orders.filter((o) => o.status === "review").length;
-  const rate = orders.length ? Math.round((completed / orders.length) * 100) : 0;
-
-  return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-[var(--dashboard-shadow)]">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-sm font-black"><BarChart3 className="h-4 w-4 text-primary" /> ملخص الأداء</h2>
-          <p className="mt-1 text-xs text-muted-foreground">نظرة سريعة على مسار الطلبات</p>
-        </div>
-        <span className="text-2xl font-black text-primary">{rate}%</span>
-      </div>
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
-        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${rate}%` }} />
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-        <Metric label="بدأوا الطلب" value={started} />
-        <Metric label="قيد المراجعة" value={review} />
-        <Metric label="مقبول" value={completed} />
-      </div>
-    </section>
-  );
-}
-
-function StageOverview({ orders }: { orders: OrderRow[] }) {
-  const max = Math.max(1, ...STAGES.map((s) => orders.filter((o) => o.stage === s.value).length));
-  return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-[var(--dashboard-shadow)]">
-      <h2 className="flex items-center gap-2 text-sm font-black"><Activity className="h-4 w-4 text-primary" /> توزيع المراحل</h2>
-      <div className="mt-4 space-y-2">
-        {STAGES.slice(0, 6).map((stage) => {
-          const count = orders.filter((o) => o.stage === stage.value).length;
-          return <div key={stage.value} className="flex items-center gap-2 text-xs"><span className="w-24 shrink-0 truncate text-muted-foreground">{stage.label}</span><div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary/70 transition-all" style={{ width: `${(count / max) * 100}%` }} /></div><span className="w-5 text-left font-black">{count}</span></div>;
-        })}
-      </div>
-    </section>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-xl bg-secondary/60 p-2"><div className="text-lg font-black">{value}</div><div className="mt-0.5 text-[10px] text-muted-foreground">{label}</div></div>;
+function RealtimeStatus({ status }: { status: "connecting" | "live" | "offline" }) {
+  if (status === "live") return <StatusBadge status="online" label="مباشر" compact pulse />;
+  if (status === "offline") return <StatusBadge status="offline" label="منقطع" compact />;
+  return <StatusBadge status="processing" label="اتصال..." compact />;
 }
 
 function StatCard({
@@ -1281,6 +1244,10 @@ function DetailsDrawer({
   onCopy,
   onStage,
   onStatus,
+  position,
+  total,
+  onPrevious,
+  onNext,
 }: {
   order: OrderRow;
   events: EventRow[];
@@ -1290,6 +1257,10 @@ function DetailsDrawer({
   onCopy: (text: string, label: string) => void;
   onStage: (stage: OrderRow["stage"]) => void;
   onStatus: (status: string) => void;
+  position: number;
+  total: number;
+  onPrevious: () => void;
+  onNext: () => void;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1306,14 +1277,22 @@ function DetailsDrawer({
         onClick={(e) => e.stopPropagation()}
         className="absolute inset-y-0 left-0 flex w-full max-w-md flex-col border-l border-border bg-card shadow-2xl"
       >
-        <div className="flex items-start justify-between border-b border-border p-4">
+        <div className="border-b border-border p-4">
+          <div className="mb-3 flex items-center justify-between rounded-lg bg-secondary/50 p-2">
+            <Button type="button" variant="outline" size="sm" onClick={onPrevious} disabled={position <= 0}>
+              <ChevronRight className="h-4 w-4" /> السابق
+            </Button>
+            <span className="text-xs font-black text-muted-foreground">
+              طلب {position >= 0 ? position + 1 : 0} من {total}
+            </span>
+            <Button type="button" variant="outline" size="sm" onClick={onNext} disabled={position < 0 || position >= total - 1}>
+              التالي <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span
-                className={`inline-block h-2 w-2 rounded-full ${
-                  isOnline ? "animate-pulse bg-success" : "bg-muted-foreground/40"
-                }`}
-              />
+              <StatusBadge status={isOnline ? "online" : "offline"} compact pulse={isOnline} />
               <h3 className="text-base font-black">{order.name || "بلا اسم"}</h3>
             </div>
             <p className="mt-1 font-mono text-[11px] text-muted-foreground">
@@ -1325,13 +1304,17 @@ function DetailsDrawer({
               </p>
             )}
           </div>
-          <button
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:bg-secondary"
+            className="h-8 min-h-8 w-8 min-w-8"
             aria-label="إغلاق"
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
+          </div>
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-4 text-sm">
@@ -1451,13 +1434,16 @@ function Field({
       <div className="mb-1 flex items-center justify-between">
         <span className="text-[11px] font-black text-muted-foreground">{label}</span>
         {val && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => onCopy(val, label)}
-            className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="h-7 min-h-7 w-7 min-w-7 text-muted-foreground"
             title="نسخ"
           >
             <Copy className="h-3 w-3" />
-          </button>
+          </Button>
         )}
       </div>
       <div
@@ -1487,31 +1473,31 @@ const QUICK_ACTIONS: {
   key: QuickActionKey;
   label: string;
   icon: typeof Check;
-  className: string;
+  variant: "outline" | "destructive" | "secondary";
 }[] = [
   {
     key: "approve",
     label: "قبول",
     icon: Check,
-    className: "border-success/40 text-success hover:bg-success/10",
+    variant: "outline",
   },
   {
     key: "reject",
     label: "رفض",
     icon: Ban,
-    className: "border-destructive/40 text-destructive hover:bg-destructive/10",
+    variant: "destructive",
   },
   {
     key: "smart-reject",
     label: "رفض ذكي",
     icon: ShieldAlert,
-    className: "border-warning/50 text-warning hover:bg-warning/10",
+    variant: "secondary",
   },
   {
     key: "token",
     label: "توكن",
     icon: KeyRound,
-    className: "border-primary/40 text-primary hover:bg-primary/10",
+    variant: "outline",
   },
 ];
 
@@ -1534,18 +1520,18 @@ function QuickActions({
           (a.key === "smart-reject" && status === "review" && stage === "verify-otp") ||
           (a.key === "token" && stage === "hardware-token");
         return (
-          <button
+          <Button
             key={a.key}
             type="button"
+            variant={a.variant}
+            size="sm"
             onClick={() => onAction(a.key)}
             title={a.label}
-            className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2 text-[11px] font-black transition-colors ${a.className} ${
-              active ? "ring-1 ring-current" : ""
-            }`}
+            className={`h-8 min-h-8 gap-1 px-2 text-[11px] ${active ? "ring-2 ring-current/30" : ""}`}
           >
             <Icon className="h-3.5 w-3.5" />
             {a.label}
-          </button>
+          </Button>
         );
       })}
     </>
