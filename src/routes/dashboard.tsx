@@ -155,9 +155,16 @@ function LoginForm({ onSuccess }: { onSuccess: (u: string, p: string) => void })
 
   async function handle(e: FormEvent) {
     e.preventDefault();
+    const user = u.trim();
+    const pass = p.trim();
+    if (!user || !pass) {
+      toast.error("يرجى إدخال اسم المستخدم وكلمة المرور");
+      return;
+    }
     setLoading(true);
     try {
-      await adminLogin({ data: { username: u, password: p } });
+      await adminLogin({ data: { username: user, password: pass } });
+
       saveCreds(u, p);
       onSuccess(u, p);
     } catch (err) {
