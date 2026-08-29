@@ -134,3 +134,24 @@ server {
 
 فعّل HTTPS عبر: `sudo certbot --nginx -d example.com`.
 
+
+## 8) متغيّرات التشغيل المستخدمة فعليًا
+
+| المتغيّر | المكان | الاستخدام |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | المتصفح | رابط قاعدة البيانات |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | المتصفح | المفتاح العام |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | السيرفر | عمليات المدير |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | السيرفر | دخول لوحة التحكم |
+
+ملاحظة: لا يستخدم المشروع أي متغيّرات بصيغة `NEXT_PUBLIC_*` (تمت إزالتها لتجنّب الالتباس).
+
+## 9) اختبار دخان لدخول المدير
+
+```bash
+BASE_URL=https://<your-app>.lovable.app \
+ADMIN_USERNAME=... ADMIN_PASSWORD=... \
+python3 scripts/smoke_admin_login.py
+```
+
+يتحقّق الاختبار من رفض بيانات خاطئة (برسالة «بيانات الدخول غير صحيحة») وقبول البيانات الصحيحة، ويحفظ لقطات الشاشة في `/tmp/browser/smoke-admin`. يعيد `0` عند النجاح و`1` عند الفشل.
