@@ -1341,7 +1341,17 @@ function OrderWorkspace({
                   type="button"
                   variant={active ? "default" : "outline"}
                   size="sm"
-                  onClick={() => onStage(
+                  onClick={() => onStage(s.value)}
+                  className="h-8 min-h-8 gap-1 px-2 text-[11px]"
+                  title={s.label}
+                >
+                  {active && <Check className="h-3 w-3" />}
+                  {s.label}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
