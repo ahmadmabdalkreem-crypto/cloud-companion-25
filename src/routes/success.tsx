@@ -122,7 +122,7 @@ function SummaryRow({
   label,
   value,
 }: {
-  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
 }) {
