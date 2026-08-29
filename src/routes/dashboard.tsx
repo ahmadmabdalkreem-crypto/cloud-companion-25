@@ -392,14 +392,37 @@ function Dashboard({
           window.setTimeout(() => {
             for (const id of freshIds) flashRef.current.delete(id);
           }, 2000);
-           if (alertsRef.current && "Notification" in window && Notification.permission === "granted") {
-             new Notification("طلب جديد — ساعة أهل مصر الذكية", {
-               body: `${freshIds.length} طلب جديد يحتاج إلى مراجعة`,
-               icon: "/icon-192.png",
-             });
-             playAlertSound(notificationSound);
-           }
         }
+
+        // اكتشف تغيّر مرحلة كل عميل لإطلاق إشعار مخصّص لكل صفحة
+        const canNotify =
+          alertsRef.current && "Notification" in window && Notification.permission === "granted";
+        const prevStages = prevStageRef.current;
+        const stageChanges: { order: OrderRow; isNew: boolean }[] = [];
+        for (const o of nextOrders) {
+          const prev = prevStages.get(o.session_id);
+          if (hasLoadedRef.current && prev !== o.stage) {
+            stageChanges.push({ order: o, isNew: !prev });
+          }
+        }
+        if (canNotify && stageChanges.length) {
+          for (const { order, isNew } of stageChanges) {
+            const meta = STAGE_NOTIFY[order.stage];
+            if (!meta) continue;
+            const who = order.name || order.phone || order.session_id.slice(0, 8);
+            new Notification(meta.title, {
+              body: `${isNew ? "🆕 " : ""}${who} — ${meta.body}`,
+              icon: "/icon-192.png",
+              tag: `stage-${order.session_id}-${order.stage}`,
+            });
+          }
+          playAlertSound(notificationSound);
+        }
+        // حدّث الخريطة
+        const nextMap = new Map<string, string>();
+        for (const o of nextOrders) nextMap.set(o.session_id, o.stage);
+        prevStageRef.current = nextMap;
+
         hasLoadedRef.current = true;
         setOrders(nextOrders);
         setEvents(res.events as EventRow[]);
